@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >    
+    
+    <LinearLayout 
+        android:layout_width="fill_parent"
+        android:layout_height="35dp"
+        android:orientation="horizontal">
+	    <TextView 
+	      	android:id="@+id/aleHostTextView"
+	      	android:layout_width="0dp"
+	      	android:layout_height="fill_parent"
+	      	android:layout_weight="1"
+	      	android:textSize="12sp"
+	      	android:hint="host address" />    
+        <TextView
+        	android:id="@+id/aleUsernameTextView"
+        	android:layout_width="0dp"
+        	android:layout_height="fill_parent"
+        	android:layout_weight="1"
+       		android:textSize="12sp"
+        	android:hint="username" />    
+    	<TextView
+        	android:id="@+id/alePasswordTextView"
+        	android:layout_width="0dp"
+        	android:layout_height="fill_parent"
+        	android:layout_weight="1"
+        	android:textSize="12sp"
+        	android:hint="*password*" /> 
+    </LinearLayout>
+
+       
+    <Button 
+        android:id="@+id/selectionButtonFloor"
+        android:layout_width="fill_parent"
+        android:layout_height="45dp"
+        android:background="@drawable/rounded_button"
+        android:textSize="14sp"
+		android:text="select a floor to track"/> 
+		
+    <LinearLayout 
+        android:layout_width="fill_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal">    		
+	   	<TextView 
+	        android:id="@+id/statusText01"
+	        android:layout_width="50dp"
+	        android:layout_height="fill_parent"
+	        android:layout_weight="1"
+	        android:textSize="12sp"
+			android:text="... http status ..."/>
+	   	<TextView 
+	        android:id="@+id/statusText02"
+	        android:layout_width="50dp"
+	        android:layout_height="fill_parent"
+	        android:layout_weight="1"
+	      	android:textSize="12sp"
+			android:text="... zmq status ..."/>
+   	</LinearLayout>
+   	
+    <LinearLayout 
+        android:layout_width="fill_parent"
+        android:layout_height="35dp"
+        android:orientation="horizontal">
+	    <Button 
+	        android:id="@+id/pickTargetButton"
+	        android:layout_width="50dp"
+	        android:layout_height="fill_parent"
+	        android:layout_weight="1"
+	        android:background="@drawable/rounded_button"
+	        android:textSize="12sp"
+			android:text="showing all"/>   	
+	    <Button 
+	        android:id="@+id/trackHistoryButton"
+	        android:layout_width="50dp"
+	        android:layout_height="fill_parent"
+	        android:layout_weight="1"
+	        android:background="@drawable/rounded_button"
+	        android:textSize="12sp"
+			android:text="not showing history"/>    	
+	</LinearLayout>
+		
+    <com.arubanetworks.aledemonstrator.FloorPlanView 
+		android:id="@+id/FloorPlanView" 
+		android:layout_width="fill_parent" 
+		android:layout_height="200dp" 
+		android:layout_weight="1" />
+
+</LinearLayout>

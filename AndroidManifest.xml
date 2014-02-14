@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- initial version 1 on 15Jan14 -->
+<!-- new version 2 on 24Jan14 with changes to settings dialog -->
+<!-- new version 3 on 28Jan14 with bugfix for landscape mode -->
+<!-- new version 4 on 03Feb14 with minor bugfixes -->
+
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.arubanetworks.aledemonstrator"
+    android:versionCode="4"
+    android:versionName="4" >
+
+    <uses-sdk
+        android:minSdkVersion="11"
+        android:targetSdkVersion="17" />
+    
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name="com.arubanetworks.aledemonstrator.MainActivity"
+            android:label="@string/app_name" 
+            android:configChanges="keyboardHidden|orientation|screenSize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

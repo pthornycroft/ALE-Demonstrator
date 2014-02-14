@@ -1,0 +1,299 @@
+package ce.nbapi;
+//option java_package = "com.aruba.ale.proto";
+option java_package = "com.arubanetworks.aledemonstrator";
+
+// Common objects
+
+message ip_address {
+        enum addr_family {
+             ADDR_FAMILY_UNSPEC = 0; 
+             ADDR_FAMILY_INET = 2;   // Internet IP Protocol
+             ADDR_FAMILY_INET6 = 10; // IP version 6
+        }
+        required addr_family af = 1;
+        required bytes addr = 2;
+}
+
+message mac_address {
+        required bytes addr = 1; // 6 bytes
+}
+
+
+// Main objects
+
+message location {
+        optional mac_address sta_eth_mac = 1;
+        optional float sta_location_x = 2;
+        optional float sta_location_y = 3;
+        optional uint32 error_level = 7;
+        optional bool associated = 8;
+        optional bytes campus_id = 9;
+        optional bytes building_id = 10;
+        optional bytes floor_id = 11;
+        optional bytes hashed_sta_eth_mac = 12;
+        repeated bytes geofence_ids = 13;
+}
+
+message presence {
+        optional mac_address sta_eth_mac = 1;
+        optional bool associated = 2;
+        optional bytes hashed_sta_eth_mac = 3;
+}
+
+message rssi {
+        optional mac_address sta_eth_mac = 1;
+        optional mac_address radio_mac = 2;
+        optional uint32 rssi_val = 3;
+        optional bool associated = 4;
+        optional bytes hashed_sta_eth_mac = 5;
+}
+
+message station {
+        optional mac_address sta_eth_mac = 1;
+        optional string username = 2;
+        optional string role = 3;
+        optional mac_address bssid = 4;
+        optional string device_type = 5;
+        optional ip_address sta_ip_address = 6;
+        optional bytes hashed_sta_eth_mac = 7;
+        optional bytes hashed_sta_ip_address = 8;
+}
+
+message access_point {
+        enum deployment_mode {
+             DEPLOYMENT_MODE_CAMPUS = 0;
+             DEPLOYMENT_MODE_REMOTE = 1;
+        }
+        optional mac_address ap_eth_mac = 1;
+        optional string ap_name = 2;
+        optional string ap_group = 3;
+        optional string ap_model = 4;
+        optional deployment_mode depl_mode = 5;
+        optional ip_address ap_ip_address = 6;
+}
+
+message radio {
+        enum radio_phy_type {
+             RADIO_PHY_TYPE_A = 0;
+             RADIO_PHY_TYPE_A_HT = 1;
+             RADIO_PHY_TYPE_A_HT_40 = 2;
+             RADIO_PHY_TYPE_B_G = 3;
+             RADIO_PHY_TYPE_B_G_HT = 4;
+             RADIO_PHY_TYPE_B_G_HT_40 = 5;
+             RADIO_PHY_TYPE_AC_HT = 6;
+             RADIO_PHY_TYPE_AC_HT_40 = 7;
+             RADIO_PHY_TYPE_AC_HT_80 = 8;
+        }
+        enum radio_mode {
+             RADIO_MODE_AP = 0;
+             RADIO_MODE_MESH_PORTAL = 1; 
+             RADIO_MODE_MESH_POINT = 2;
+             RADIO_MODE_AIR_MONITOR = 3;
+             RADIO_MODE_SPECTRUM_SENSOR = 4;
+        }
+        optional mac_address ap_eth_mac = 1;
+        optional mac_address radio_bssid = 2;
+        optional radio_phy_type phy_type = 3;
+        optional radio_mode mode = 4;
+}
+
+message virtual_access_point {
+        optional mac_address bssid = 1;
+        optional string ssid = 2;
+        optional mac_address radio_bssid = 3;
+}
+
+message destination {
+        optional ip_address dest_ip = 1;
+        optional string dest_name = 2;
+        optional string dest_alias_name = 3;
+}
+
+message application {
+        optional uint32 app_id = 1;
+        optional string app_name = 2;
+}
+
+message visibility_rec {
+        enum ip_protocol {
+             IP_PROTOCOL_VAL_6 = 6;
+             IP_PROTOCOL_VAL_17 = 17;
+        }
+        optional ip_address client_ip = 1;
+        optional ip_address dest_ip = 2;
+        optional ip_protocol ip_proto = 3;
+        optional uint32 app_id = 4;
+        optional uint64 tx_pkts = 5;
+        optional uint64 tx_bytes = 6;
+        optional uint64 rx_pkts = 7;
+        optional uint64 rx_bytes = 8;
+        optional bytes hashed_client_ip = 9;
+        optional mac_address device_mac = 10;
+        optional bytes hashed_device_mac = 11;
+        optional string app_name = 12;
+}
+
+message campus {
+    optional bytes campus_id = 1; // 16 bytes id
+    optional string campus_name = 2;
+}
+
+message building {
+    optional bytes building_id = 1; // 16 bytes id
+    optional string building_name = 2;
+    optional bytes campus_id = 3;  // 16 bytes id
+}
+
+message floor {
+    optional bytes floor_id = 1; // 16 bytes id
+    optional string floor_name = 2;
+    optional float floor_latitude = 3;
+    optional float floor_longitude = 4;
+    optional string floor_img_path = 5;
+    optional float floor_img_width = 6;
+    optional float floor_img_length = 7;
+    optional bytes building_id = 8; // 16 bytes id
+    optional float floor_level = 9;
+    optional string units = 10;
+}
+
+message point {
+    optional float x = 1;
+    optional float y = 2;
+}
+
+message geofence {
+    optional bytes floor_id = 1; // 16 bytes id
+    optional bytes geofence_id = 2; // 16 bytes id
+    optional string geofence_name = 3;
+    optional string type = 4;
+    repeated point point_list = 5;
+}
+
+message geofence_notify {
+        enum zone_event {
+             ZONE_IN = 0;
+             ZONE_OUT = 1;
+        }
+        optional zone_event geofence_event = 1;
+        optional bytes geofence_id = 2;
+        optional string geofence_name = 3;
+        optional mac_address sta_mac = 4;
+        optional bool associated = 5;
+        optional uint32 dwell_time = 6 [default=0];
+        repeated group Access_point_info = 7 {
+                 optional mac_address ap_mac = 8;
+                 optional string ap_name = 9;
+                 optional mac_address radio_bssid = 10;
+                 optional uint32 rssi_val = 11;
+        }
+        optional bytes hashed_sta_mac = 30;
+}
+
+// Event message definition
+
+message nb_event {
+        enum event_operation {
+             OP_ADD = 0;
+             OP_UPDATE = 1;
+             OP_DELETE = 2;
+        }
+	enum license_info {
+		hb_Dhak             = 10;
+		hb_LimitOk          = 11;
+		hb_ThresholdXNotice = 20;
+		hb_ThresholdOkNotice= 21;
+		hb_LicenseExceeded  = 31;
+		hb_EvalStarted      = 41;
+		hb_NewLimitExceeded = 51;
+		hb_EvalDone         = 61;
+		hb_ALSOnline        = 71;
+		hb_ALSDieing        = 81;
+		hb_LICENSE_BLOCKED  = 91;
+	}
+        optional uint64 seq = 1;
+        optional uint32 timestamp = 2;
+        optional event_operation op = 3;
+        optional uint64 topic_seq = 4;
+        optional bytes source_id = 5;
+
+	//For now required license_info lic_info = 6 [default=hb_Dhak];
+	optional license_info lic_info = 6 [default=hb_Dhak];
+
+        // One of the following is populated depending on the topic
+        optional location location = 500; 
+        optional presence presence = 501;
+        optional rssi rssi = 502;
+        optional station station = 503;
+        optional radio radio = 505;
+        optional destination destination = 507;
+        optional application application = 509;
+        optional visibility_rec visibility_rec = 510;
+        optional campus campus = 511;
+        optional building building = 512;
+        optional floor floor = 513;
+        optional access_point access_point = 514;
+        optional virtual_access_point virtual_access_point = 515;
+        optional geofence geofence = 516;
+        optional geofence_notify geofence_notify = 517;
+}
+
+// Query result set
+message query_response {
+        repeated group Location_result = 10 {
+                 required location msg = 11;
+                 optional uint32 ts = 12;
+        }
+        repeated group Presence_result = 20 {
+                 required presence msg = 21;
+                 optional uint32 ts = 22;
+        }
+        repeated group Rssi_result = 30 {
+                 required rssi msg = 31;
+                 optional uint32 ts = 32;
+        }
+        repeated group Station_result = 40 {
+                 required station msg = 41;
+                 optional uint32 ts = 42;
+        }
+        repeated group Radio_result = 50 {
+                 required radio msg = 51;
+                 optional uint32 ts = 52;
+        }
+        repeated group Destination_result = 60 {
+                 required destination msg = 61;
+                 optional uint32 ts = 62;
+        }
+        repeated group Application_result = 70 {
+                 required application msg = 71;
+                 optional uint32 ts = 72;
+        }
+        repeated group Visibility_rec_result = 80 {
+                 required visibility_rec msg = 81;
+                 optional uint32 ts = 82;
+        }
+        repeated group Campus_result = 90 {
+                 required campus msg = 91;
+                 optional uint32 ts = 92;
+        }
+        repeated group Building_result = 100 {
+                 required building msg = 101;
+                 optional uint32 ts = 102;
+        }
+        repeated group Floor_result = 110 {
+                 required floor msg = 111;
+                 optional uint32 ts = 112;
+        }
+        repeated group Access_point_result = 120 {
+                 required access_point msg = 121;
+                 optional uint32 ts = 122;
+        }
+        repeated group Virtual_access_point_result = 130 {
+                 required virtual_access_point msg = 131;
+                 optional uint32 ts = 132;
+        }
+        repeated group Geofence_result = 140 {
+                 required geofence msg = 141;
+                 optional uint32 ts = 142;
+        }
+}
