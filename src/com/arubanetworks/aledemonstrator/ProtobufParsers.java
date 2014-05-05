@@ -3,14 +3,6 @@ package com.arubanetworks.aledemonstrator;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import com.google.protobuf.Descriptors.FieldDescriptor;
-
-
 import android.util.Log;
 
 public class ProtobufParsers {
@@ -84,25 +76,29 @@ public class ProtobufParsers {
 				MainActivity.site_yAle = sta_location_y; 
 //				MainActivity.floorIdAle = floorId;
 				PositionHistoryObject newObject = new PositionHistoryObject(new Date(), 0, 0, sta_location_x, sta_location_y, -99, false, error, 
-						floorId, buildingId, campusId, sta_eth_mac, hashed_sta_eth_mac);
+						floorId, buildingId, campusId, sta_eth_mac, hashed_sta_eth_mac, "ft", "XX", "XX", 0, null);
 				MainActivity.alePositionHistoryList.add(0, newObject);
 				MainActivity.zmqMessagesForMyMac++;
 			} 
-			if(MainActivity.showAllMacs){
-				PositionHistoryObject newObject = new PositionHistoryObject(new Date(), 0, 0, sta_location_x, sta_location_y, -99, false, error, 
-						floorId, buildingId, campusId, sta_eth_mac, hashed_sta_eth_mac);
-				//Log.i(TAG, "new positionHistoryObject showAllMacs eth _"+sta_eth_mac+"_ hash _"+hashed_sta_eth_mac+"_  x_"+sta_location_x+"  y_"+sta_location_y+" site "+floorId);
-				if(MainActivity.aleAllPositionHistoryMap.containsKey(hashed_sta_eth_mac) && !floorId.equals("not found") &&
-						MainActivity.floorListIndex != -1 && floorId.equals(MainActivity.floorList.get(MainActivity.floorListIndex).floor_id)){
-					if(MainActivity.aleAllPositionHistoryMap.get(hashed_sta_eth_mac).size() > 500) { MainActivity.aleAllPositionHistoryMap.get(hashed_sta_eth_mac).remove(0); }
-					MainActivity.aleAllPositionHistoryMap.get(hashed_sta_eth_mac).add(newObject);
+
+			// add the position history object to the device's array in the position hash map
+			PositionHistoryObject newObject = new PositionHistoryObject(new Date(), 0, 0, sta_location_x, sta_location_y, -99, false, error, 
+					floorId, buildingId, campusId, sta_eth_mac, hashed_sta_eth_mac, "ft", "XX", "XX", 0, null);
+			//Log.i(TAG, "new positionHistoryObject showAllMacs eth _"+sta_eth_mac+"_ hash _"+hashed_sta_eth_mac+"_  x_"+sta_location_x+"  y_"+sta_location_y+" site "+floorId);
+			if(MainActivity.aleAllPositionHistoryMap.containsKey(hashed_sta_eth_mac) && !floorId.equals("not found") &&
+					MainActivity.floorListIndex != -1 && floorId.equals(MainActivity.floorList.get(MainActivity.floorListIndex).floor_id)){
+				if(MainActivity.aleAllPositionHistoryMap.get(hashed_sta_eth_mac).size() > 100) { 
+					Log.w(TAG, "position history array was over 500 "+hashed_sta_eth_mac);
+					MainActivity.aleAllPositionHistoryMap.get(hashed_sta_eth_mac).remove(0); 
 				}
-				else {
-					ArrayList<PositionHistoryObject> newList = new ArrayList<PositionHistoryObject>();
-					newList.add(newObject);
-					MainActivity.aleAllPositionHistoryMap.put(hashed_sta_eth_mac, newList);
-				}
+				MainActivity.aleAllPositionHistoryMap.get(hashed_sta_eth_mac).add(newObject);
 			}
+			else {
+				ArrayList<PositionHistoryObject> newList = new ArrayList<PositionHistoryObject>();
+				newList.add(newObject);
+				MainActivity.aleAllPositionHistoryMap.put(hashed_sta_eth_mac, newList);
+			}
+
 			addToEventLogMap(hashed_sta_eth_mac, "LOCATION x_"+sta_location_x+"_ y_"+sta_location_y+"_");
 			
 		} catch (Exception e) { 
@@ -327,7 +323,7 @@ public class ProtobufParsers {
 		MainActivity.eventLogMap.get(hashed_sta_eth_mac).add(0, datestamp+"  :  "+event);
 
 		// trim the list if it's more than 500 entries
-		if(MainActivity.eventLogMap.get(hashed_sta_eth_mac).size() > 500) {
+		if(MainActivity.eventLogMap.get(hashed_sta_eth_mac).size() > 100) {
 			MainActivity.eventLogMap.get(hashed_sta_eth_mac).remove(MainActivity.eventLogMap.get(hashed_sta_eth_mac).size()-1);
 			MainActivity.eventLogMap.get(hashed_sta_eth_mac).remove(MainActivity.eventLogMap.get(hashed_sta_eth_mac).size()-2);
 

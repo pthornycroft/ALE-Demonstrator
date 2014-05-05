@@ -17,6 +17,7 @@ import android.util.Log;
 
 public class DownloadFloorplanAsyncTask extends AsyncTask <String, Integer, Bitmap> {
 	static String TAG = "DownloadFloorplanAsyncTask";
+	int TIMEOUT_VALUE = 15000;
 	
 	protected Bitmap doInBackground(String... params) {
 		
@@ -28,7 +29,7 @@ public class DownloadFloorplanAsyncTask extends AsyncTask <String, Integer, Bitm
 	public void onPreExecute(){
 		Log.i(TAG, "DownloadFloorplanAsyncTask starting");
 		MainActivity.downloadFloorplanAsyncTaskInProgress = true;
-		MainActivity.httpStatusString = "Starting floorplan image download";
+		MainActivity.httpStatusString2 = "Starting floorplan image download";
 	}
 	
 	public void onPostExecute(Bitmap result){
@@ -36,9 +37,9 @@ public class DownloadFloorplanAsyncTask extends AsyncTask <String, Integer, Bitm
 		MainActivity.downloadFloorplanAsyncTaskInProgress = false;
 		if(result != null){
 			MainActivity.floorPlan = result;
-			MainActivity.httpStatusString = "Successful floorplan image download";
+			MainActivity.httpStatusString2 = "Successful floorplan image download";
 		}
-		else { MainActivity.httpStatusString = "Unsuccessful floorplan image download"; }
+		else { MainActivity.httpStatusString2 = "Unsuccessful floorplan image download"; }
 	}
 
 
@@ -82,6 +83,8 @@ public class DownloadFloorplanAsyncTask extends AsyncTask <String, Integer, Bitm
 			}	*/			
 			
 			InputStream is = connection.getInputStream();
+			connection.setConnectTimeout(TIMEOUT_VALUE);
+			connection.setReadTimeout(TIMEOUT_VALUE);
 			BufferedInputStream insImageURL = new BufferedInputStream(is, 8196);
 			Log.v(TAG, "http "+imageURL.toString()+" result code was "+connection.getResponseCode()+"  response message "+connection.getResponseMessage());				
 			// test the size of the image to see if we need to compress it

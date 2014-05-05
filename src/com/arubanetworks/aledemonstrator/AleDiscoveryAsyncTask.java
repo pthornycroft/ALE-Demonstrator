@@ -12,15 +12,19 @@ import android.util.Log;
 
 public class AleDiscoveryAsyncTask extends AsyncTask <String, Integer, ArrayList[]> {
 	String TAG = "AleDiscoveryAsyncTask";
+	int TIMEOUT_VALUE = 20000;
 	
 	protected ArrayList[] doInBackground(String... params) {
 		
 		// query for campuses
 		ArrayList<AleCampus> campusList = JsonParsers.parseAleJsonCampus(readStreamString(runLookup("/api/v1/campus.json")));
+		Log.v(TAG, "1");
 		// query for buildings
 		ArrayList<AleBuilding> buildingList = JsonParsers.parseAleJsonBuilding(readStreamString(runLookup("/api/v1/building.json")));
+		Log.v(TAG, "2");
 		// query for floors
 		ArrayList<AleFloor> floorList = JsonParsers.parseAleJsonFloor(readStreamString(runLookup("/api/v1/floor.json")));
+		Log.v(TAG, "3");
 		
 		ArrayList[] result = {campusList, buildingList, floorList};
 		return result;
@@ -29,7 +33,7 @@ public class AleDiscoveryAsyncTask extends AsyncTask <String, Integer, ArrayList
 	public void onPreExecute(){
 		Log.i(TAG, "aleDiscoveryAsyncTask starting");
 		MainActivity.aleDiscoveryAsyncTaskInProgress = true;
-		MainActivity.httpStatusString = "Discovering campus, building, floor data";
+		MainActivity.httpStatusString1 = "Discovering campus, building, floor data";
 	}
 	
 	public void onPostExecute(ArrayList[] result){
@@ -41,8 +45,8 @@ public class AleDiscoveryAsyncTask extends AsyncTask <String, Integer, ArrayList
 		for (int i=0; i<result[0].size(); i++){ Log.i(TAG, "Campus List "+i +" "+result[0].get(i).toString()); }
 		for (int i=0; i<result[1].size(); i++){ Log.i(TAG, "Building List "+i +" "+result[1].get(i).toString()); }
 		for (int i=0; i<result[2].size(); i++){ Log.i(TAG, "Floor List "+i +" "+result[2].get(i).toString()); }
-		if(result[2] != null) { MainActivity.httpStatusString = "Discovered campus, building, floor data"; }
-		else { MainActivity.httpStatusString = "Failed to discover campus, building, floor"; }
+		if(result[2] != null) { MainActivity.httpStatusString1 = "Discovered campus, building, floor data, "+result[2].size()+" floors"; }
+		else { MainActivity.httpStatusString1 = "Failed to discover campus, building, floor"; }
 	}
 	
 	
@@ -53,6 +57,8 @@ public class AleDiscoveryAsyncTask extends AsyncTask <String, Integer, ArrayList
 			URL url = new URL("http://"+MainActivity.aleHost+":8080"+args);
 			Log.v(TAG, "URL get protocol "+url.getProtocol()+" host "+url.getHost()+" port "+url.getPort()+" file "+url.getFile());
 			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+			connection.setConnectTimeout(TIMEOUT_VALUE);
+			connection.setReadTimeout(TIMEOUT_VALUE);
 			
 			/*Map<String, List<String>> map = connection.getHeaderFields();
 			for(Entry<String, List<String>> entry : map.entrySet()) { 

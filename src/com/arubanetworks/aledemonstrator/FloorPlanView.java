@@ -2,7 +2,6 @@ package com.arubanetworks.aledemonstrator;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,10 +31,12 @@ public class FloorPlanView extends View {
 	int rectHeightInt;
 	final Paint myMacPaint = new Paint();
 	final Paint myAlePaint = new Paint();
+	final Paint myGridPaint = new Paint();
+	final Paint myMapPaint = new Paint();
 	
 	float site_xAle = 0;;
 	float site_yAle = 0;
-//    HashMap<String, ArrayList<PositionHistoryObject>> aleAllPositionHistoryMap = new HashMap<String, ArrayList<PositionHistoryObject>>(500);
+//  HashMap<String, ArrayList<PositionHistoryObject>> aleAllPositionHistoryMap = new HashMap<String, ArrayList<PositionHistoryObject>>(500);
 //	ArrayList<PositionHistoryObject> alePositionHistoryList = new ArrayList<PositionHistoryObject>();
 	boolean showHistory;
 	boolean showAllMacs;
@@ -73,8 +74,8 @@ public class FloorPlanView extends View {
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
-        if(MainActivity.floorPlan != null && MainActivity.floorList != null && MainActivity.floorListIndex != -1 && 
-        		MainActivity.floorList.get(MainActivity.floorListIndex) != null){        	
+        if(MainActivity.floorPlan != null && MainActivity.floorList != null && MainActivity.floorList.size() > 0 && 
+        		MainActivity.floorListIndex != -1 && MainActivity.floorList.get(MainActivity.floorListIndex) != null){        	
 	        thisFloor = MainActivity.floorList.get(MainActivity.floorListIndex);
 	        thisFloorPlan = MainActivity.floorPlan;
 	        site_xAle = MainActivity.site_xAle;
@@ -107,7 +108,11 @@ public class FloorPlanView extends View {
 			myAlePaint.setColor(Color.RED);
 			myAlePaint.setStyle(Paint.Style.FILL);
 			myAlePaint.setStrokeWidth(4);
-			myMacPaint.setTextSize(20);
+			myAlePaint.setTextSize(36);
+			
+			myGridPaint.setColor(Color.LTGRAY);
+			myGridPaint.setStyle(Paint.Style.STROKE);
+			myGridPaint.setStrokeWidth(1);
 		
 			//Size the bitmap and build a rectangle to put it in, on the canvas
 			float frameScaleFloat = scaleBitmap(canvas.getWidth(), canvas.getHeight(), thisFloorPlan.getWidth(), thisFloorPlan.getHeight());
@@ -119,8 +124,40 @@ public class FloorPlanView extends View {
 			//scaleFactor = (float) (rectHeightInt/MainActivity.siteHeight);
 			scaleFactor = (float) (rectHeightInt/thisFloor.floor_img_length);
 			
+			// if we are in survey fingerprint mode, put up the gridlines and update the central x,y coordinates
+			if(!MainActivity.trackMode){
+				canvas.drawLine((viewWidth/mScaleFactor)/2-originX, -originY, (viewWidth/mScaleFactor)/2-originX, (viewHeight/mScaleFactor)-originY, myAlePaint);
+				canvas.drawLine(-originX, (viewHeight/mScaleFactor)/2-originY, (viewWidth/mScaleFactor)-originX, (viewHeight/mScaleFactor/2)-originY, myAlePaint);
+				MainActivity.surveyPointX = (-originX+(viewWidth/mScaleFactor/2))/scaleFactor;
+				MainActivity.surveyPointY = (-originY+(viewHeight/mScaleFactor/2))/scaleFactor;
+			}
+			
+			// if we have a grid size, draw a grid superimposed and put a legend at upper left
+			if(MainActivity.trackMode == false && thisFloor.grid_size > 0){
+				for(float i=0; i<thisFloor.floor_img_width; i = (i+thisFloor.grid_size)){
+					canvas.drawLine(i*scaleFactor, 0, i*scaleFactor, rectHeightInt, myGridPaint);
+				}
+				for(float i=0; i<thisFloor.floor_img_length; i = (i+thisFloor.grid_size)){
+					canvas.drawLine(0, i*scaleFactor, rectWidthInt, i*scaleFactor, myGridPaint);
+				}
+				canvas.drawText("grid "+thisFloor.grid_size+" "+thisFloor.units, 20, -10, myAlePaint);
+			}
+			
+			// if we have a fingerprint map, print it as a colour overlay
+			if(MainActivity.trackMode == false && thisFloor.grid_size > 0 && thisFloor.fingerprintMapList != null && thisFloor.fingerprintMapList.size() > 0){
+				for (int i=0; i<thisFloor.fingerprintMapList.size(); i++){
+					if(thisFloor.fingerprintMapList.get(i).satisfactory){
+						float x = thisFloor.fingerprintMapList.get(i).locationX - (thisFloor.fingerprintMapList.get(i).locationX % thisFloor.grid_size);
+						float y = thisFloor.fingerprintMapList.get(i).locationY - (thisFloor.fingerprintMapList.get(i).locationY % thisFloor.grid_size);
+						Log.v(TAG, "grid corrections "+thisFloor.grid_size+"  "+thisFloor.fingerprintMapList.get(i).locationX+" "+x+"  "+thisFloor.fingerprintMapList.get(i).locationY+"  "+y);
+						myMacPaint.setARGB(100, 153, 255, 153);
+						canvas.drawRect(x *scaleFactor, y * scaleFactor, (x+thisFloor.grid_size) * scaleFactor, (y+thisFloor.grid_size) * scaleFactor, myMacPaint);
+					}
+				}
+			}
+			
 			// Draw position and historical track of ALL ALE Positions if item enabled
-			if(showAllMacs){
+			if(MainActivity.trackMode && showAllMacs){
 				// iterate over all the MACs we've tracked
 				for(Map.Entry<String, ArrayList<PositionHistoryObject>> entry : MainActivity.aleAllPositionHistoryMap.entrySet()){
 					// draw lines joining past positions for this MAC
@@ -146,31 +183,36 @@ public class FloorPlanView extends View {
 			}
 			
 			// Draw position and historical track of target MAC Position if target hash MAC not null
-			if(targetHashMac != null){
-				// iterate over all the MACs we've tracked
+			if(MainActivity.trackMode && targetHashMac != null){
+				// iterate over all the MACs we've tracked to find the entry (hash mac) for ours
 				ArrayList<PositionHistoryObject> historyList = MainActivity.aleAllPositionHistoryMap.get(targetHashMac);
-					// draw lines joining past positions for this MAC
+				// draw lines joining past positions for this MAC
 				if(historyList != null && historyList.size() > 0){
-					for ( int i = 0; i < historyList.size() - 1; i++){
-						if(showHistory && historyList.get(i).floorId.equals(thisFloor.floor_id) && historyList.get(i).measuredX > 1){
-							canvas.drawLine(historyList.get(i).measuredX * scaleFactor, 
-									historyList.get(i).measuredY * scaleFactor,
-									historyList.get(i+1).measuredX * scaleFactor,
-									historyList.get(i+1).measuredY * scaleFactor,
-									myAlePaint);
+					for ( int i = 0; i < historyList.size(); i++){
+						
+						// draw lines
+						if(i>0) {
+							if(showHistory && historyList.get(i).floorId.equals(thisFloor.floor_id) && historyList.get(i).measuredX > 1){
+								canvas.drawLine(historyList.get(i).measuredX * scaleFactor, 
+										historyList.get(i).measuredY * scaleFactor,
+										historyList.get(i-1).measuredX * scaleFactor,
+										historyList.get(i-1).measuredY * scaleFactor,
+										myAlePaint);
+							}
 						}
-					
+						
 						// if it's the latest entry, draw a square for the current position
-						if(i == historyList.size()-2 && historyList.get(i).floorId.equals(thisFloor.floor_id)){
-							canvas.drawRect(historyList.get(i+1).measuredX*scaleFactor -8, historyList.get(i+1).measuredY*scaleFactor -8, 
-									historyList.get(i+1).measuredX*scaleFactor+8, historyList.get(i+1).measuredY*scaleFactor+8, myAlePaint);
+						if(i == historyList.size()-1 && historyList.get(i).floorId.equals(thisFloor.floor_id)){
+							canvas.drawRect(historyList.get(i).measuredX*scaleFactor -8, historyList.get(i).measuredY*scaleFactor -8, 
+									historyList.get(i).measuredX*scaleFactor+8, historyList.get(i).measuredY*scaleFactor+8, myAlePaint);
 						}
+						
 					}
 				}
 			}
 			
 			// Draw my ALE position with a rect icon, provided we are on this floor
-			if(MainActivity.myFloorId != null && MainActivity.myFloorId.equals(thisFloor.floor_id)){
+			if(MainActivity.trackMode && MainActivity.myFloorId != null && MainActivity.myFloorId.equals(thisFloor.floor_id)){
 				canvas.drawRect(site_xAle*scaleFactor -8, site_yAle*scaleFactor -8, 
 							(site_xAle*scaleFactor)+8, (site_yAle*scaleFactor)+8, myMacPaint);				
 				// Draw label if enabled
@@ -178,7 +220,7 @@ public class FloorPlanView extends View {
 				//	canvas.drawText(MainActivity.myMac, site_xAle*scaleFactor -20, site_yAle*scaleFactor -10, myMacPaint);
 				//}
 					
-				// Draw historical track of ALE Position if menu item enabled
+				// Draw my historical track of ALE Position if menu item enabled
 				if(MainActivity.alePositionHistoryList.size() > 1 && showHistory  ){
 					for ( int i = 0; i < MainActivity.alePositionHistoryList.size() - 1; i++){
 						// check whether the object is on this floor or another
@@ -193,8 +235,17 @@ public class FloorPlanView extends View {
 				}
 			}
 			
-		} 
-		else { 
+			// If in survey mode, draw breadcrumbs for survey points in this run
+			if(MainActivity.trackMode == false && MainActivity.floorList != null && MainActivity.floorListIndex != -1 && MainActivity.surveyHistoryList.size() > 0){
+				for(int i=0; i<MainActivity.surveyHistoryList.size(); i++){
+					if(MainActivity.surveyHistoryList.get(i).floorId.equals(MainActivity.floorList.get(MainActivity.floorListIndex).floor_id)){
+						canvas.drawRect(MainActivity.surveyHistoryList.get(i).touchX*scaleFactor -8,  MainActivity.surveyHistoryList.get(i).touchY*scaleFactor -8,
+								MainActivity.surveyHistoryList.get(i).touchX*scaleFactor +8, MainActivity.surveyHistoryList.get(i).touchY*scaleFactor +8, myMacPaint);
+					}
+				}
+			}
+			
+		} else { 
 			// if the bitmap has been reset to null, we just paint the canvas black because the floorplan is invalid
 			canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 		} 
@@ -240,14 +291,13 @@ public class FloorPlanView extends View {
 					lastDownY = event.getY();
 					lastTouchX = lastDownX;
 					lastTouchY = lastDownY;
-					matchTouchToTarget();
-					break;
+					matchTouchToTarget(); 				
 				}
 				case MotionEvent.ACTION_MOVE:{
 					float x = event.getX();
 					float y = event.getY();
-					deltaOriginX = x - lastTouchX;
-					deltaOriginY = y - lastTouchY;
+					deltaOriginX = (x - lastTouchX)/mScaleFactor;
+					deltaOriginY = (y - lastTouchY)/mScaleFactor;
 					lastTouchX = x;
 					lastTouchY = y;
 					break;
@@ -272,26 +322,50 @@ public class FloorPlanView extends View {
 	}
 	
 	private void matchTouchToTarget(){
-		// iterate over all the MACs we've tracked
-		Log.v(TAG, "matchTouchToTarget");
-		for(Map.Entry<String, ArrayList<PositionHistoryObject>> entry : MainActivity.aleAllPositionHistoryMap.entrySet()){
-			int i = entry.getValue().size() - 1;
-			float distX = Math.abs(entry.getValue().get(i).measuredX*scaleFactor - (lastDownX/mScaleFactor - originX));
-			float distY = Math.abs(entry.getValue().get(i).measuredY*scaleFactor - (lastDownY/mScaleFactor - originY));
-			if(distX < rectWidthInt/30 && distY < rectHeightInt/30){
-				Log.i(TAG, "matchTouchToTarget "+entry.getKey()+" distX_"+distX+" distY_"+distY+" rectWidthInt_"+(rectWidthInt/50)+" rectHeightInt_"+(rectHeightInt/50));
-				if(waitingToTouchTarget){ 
-					MainActivity.targetHashMac = entry.getKey();
-					//MainActivity.showAllMacs = false;
-					//MainActivity.waitingToTouchTarget = false;
-					Log.v(TAG, "set targetHashMac "+entry.getKey());
-					MainActivity.showAllMacs = false;
-					MainActivity.waitingToTouchTarget = false;
-					MainActivity.targetHashMac = entry.getKey();
-					MainActivity.pickTargetButton.setText("showing one device");
-				}
-				Log.v(TAG, "11 "+entry.getKey());
-				launchTargetDialog(entry.getKey().toString(), entry.getValue().get(entry.getValue().size()-1).measuredX, entry.getValue().get(entry.getValue().size()-1).measuredY);
+		
+		if(MainActivity.trackMode){
+			// iterate over all the MACs we've tracked
+			for(Map.Entry<String, ArrayList<PositionHistoryObject>> entry : MainActivity.aleAllPositionHistoryMap.entrySet()){			
+				// we just look at the last entry, for the most recent position
+				int i = entry.getValue().size() - 1;
+				// have to check whether the entry is on the same floor
+				try {
+					if(thisFloor.floor_id.equals(entry.getValue().get(i).floorId)){
+						float distX = Math.abs(entry.getValue().get(i).measuredX*scaleFactor - (lastDownX/mScaleFactor - originX));
+						float distY = Math.abs(entry.getValue().get(i).measuredY*scaleFactor - (lastDownY/mScaleFactor - originY));
+						if(distX < rectWidthInt/50 && distY < rectHeightInt/50){
+							Log.i(TAG, "matchTouchToTarget "+entry.getKey()+" distX_"+distX+" distY_"+distY+" rectWidthInt_"+(rectWidthInt/50)+" rectHeightInt_"+(rectHeightInt/50));
+							if(waitingToTouchTarget){ 
+								MainActivity.targetHashMac = entry.getKey();
+								Log.v(TAG, "set targetHashMac "+entry.getKey());
+								MainActivity.showAllMacs = false;
+								MainActivity.waitingToTouchTarget = false;
+								MainActivity.pickTargetButtonText = "showing "+entry.getKey();
+								MainActivity.pickTargetButton.setText(MainActivity.pickTargetButtonText);
+								break;
+							}
+							Log.v(TAG, "matchTouchToTarget "+entry.getKey());
+							launchTargetDialog(entry.getKey().toString(), entry.getValue().get(entry.getValue().size()-1).measuredX, entry.getValue().get(entry.getValue().size()-1).measuredY);
+						}		
+					}
+				} catch (Exception e) { Log.e(TAG, "Exception in match touch to target "+e); }
+			}
+		} else {
+			// we want to match the touch to a survey point
+			List<PositionHistoryObject> surveyList = new ArrayList<PositionHistoryObject>(MainActivity.surveyHistoryList);
+				for(int i=0; i<surveyList.size(); i++){
+				// have to check whether the entry is on the same floor
+				try {
+					if(thisFloor.floor_id.equals(surveyList.get(i).floorId)){
+						float distX = Math.abs(surveyList.get(i).touchX*scaleFactor - (lastDownX/mScaleFactor - originX));
+						float distY = Math.abs(surveyList.get(i).touchY*scaleFactor - (lastDownY/mScaleFactor - originY));
+						if(distX < rectWidthInt/50 && distY < rectHeightInt/50){
+							Log.i(TAG, "matchTouchToTarget "+i+" distX_"+distX+" distY_"+distY+" rectWidthInt_"+(rectWidthInt/50)+" rectHeightInt_"+(rectHeightInt/50));
+							launchSurveyTouchDialog(i, surveyList.get(i));
+							break;
+						}		
+					}
+				} catch (Exception e) { Log.e(TAG, "Exception in match touch to target "+e); }
 			}
 		}
 	}
@@ -303,12 +377,27 @@ public class FloorPlanView extends View {
 		Log.v(TAG, " "+"Events for target at "+x+"  "+y+"   MAC\n"+hashed_sta_eth_mac+" ");
 		builder.setTitle("Events for target at "+String.format("%.2f", x)+"  "+String.format("%.2f", y)+"  MAC\n"+hashed_sta_eth_mac+" ");
 		builder.setItems(text, new DialogInterface.OnClickListener() {
-
+			@Override
+			public void onClick(DialogInterface dialog, int which) {	
+			}
+		});
+	builder.show();
+	}
+	
+	private void launchSurveyTouchDialog(int index, final PositionHistoryObject pho){
+		AlertDialog.Builder builder = new AlertDialog.Builder(this.getContext());
+		Log.v(TAG, "Launching survey touch dialog x "+String.format("%.2f", pho.touchX)+" y "+String.format("%.2f", pho.touchY));
+		builder.setTitle("Survey Point "+index+"f x "+String.format("%.2f", pho.touchX)+"  "+String.format("%.2f", pho.touchY));
+		CharSequence[] targetList = {"delete survey point", "keep survey point"};
+		builder.setItems(targetList, new DialogInterface.OnClickListener() {		
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				
+				if(which == 0){
+					MainActivity.deleteSurveyPointFromAle(pho);
+					Log.v(TAG, "deleting survey point ");
+					return;
+				}
 			}
-			
 		});
 	builder.show();
 	}

@@ -6,29 +6,49 @@
     
     <LinearLayout 
         android:layout_width="fill_parent"
-        android:layout_height="35dp"
-        android:orientation="horizontal">
-	    <TextView 
-	      	android:id="@+id/aleHostTextView"
-	      	android:layout_width="0dp"
-	      	android:layout_height="fill_parent"
-	      	android:layout_weight="1"
-	      	android:textSize="12sp"
-	      	android:hint="host address" />    
-        <TextView
-        	android:id="@+id/aleUsernameTextView"
-        	android:layout_width="0dp"
-        	android:layout_height="fill_parent"
-        	android:layout_weight="1"
-       		android:textSize="12sp"
-        	android:hint="username" />    
-    	<TextView
-        	android:id="@+id/alePasswordTextView"
-        	android:layout_width="0dp"
-        	android:layout_height="fill_parent"
-        	android:layout_weight="1"
-        	android:textSize="12sp"
-        	android:hint="*password*" /> 
+        android:layout_height="40dp"
+        android:orientation="vertical">
+	    
+	    <LinearLayout 
+	        android:layout_width="fill_parent"
+	        android:layout_height="20dp"
+	        android:orientation="horizontal">        
+		    <TextView 
+		      	android:id="@+id/aleHostTextView"
+		      	android:layout_width="0dp"
+		      	android:layout_height="fill_parent"
+		      	android:layout_weight="1"
+		      	android:textSize="12sp"
+		      	android:hint="host address" />  
+	        <TextView
+	        	android:id="@+id/aleUsernameTextView"
+	        	android:layout_width="0dp"
+	        	android:layout_height="fill_parent"
+	        	android:layout_weight="1"
+	       		android:textSize="12sp"
+	        	android:hint="username" /> 		      	  
+		</LinearLayout>
+        	
+	    <LinearLayout 
+	        android:layout_width="fill_parent"
+	        android:layout_height="20dp"
+	        android:orientation="horizontal"> 
+	        <TextView
+	        	android:id="@+id/scanningEnabledTextView"
+	        	android:layout_width="0dp"
+	        	android:layout_height="fill_parent"
+	        	android:layout_weight="1"
+	       		android:textSize="12sp"
+	        	android:hint="scan" />   	               
+	    	<TextView
+	        	android:id="@+id/alePasswordTextView"
+	        	android:layout_width="0dp"
+	        	android:layout_height="fill_parent"
+	        	android:layout_weight="1"
+	        	android:textSize="12sp"
+	        	android:hint="*password*" /> 
+	   	</LinearLayout>        
+        	
     </LinearLayout>
 
        
@@ -37,8 +57,7 @@
         android:layout_width="fill_parent"
         android:layout_height="45dp"
         android:background="@drawable/rounded_button"
-        android:textSize="14sp"
-		android:text="select a floor to track"/> 
+        android:textSize="14sp" /> 
 		
     <LinearLayout 
         android:layout_width="fill_parent"
@@ -88,4 +107,26 @@
 		android:layout_height="200dp" 
 		android:layout_weight="1" />
 
+  	<LinearLayout 
+        android:layout_width="fill_parent"
+        android:layout_height="35dp"
+        android:orientation="horizontal">
+	    <Button 
+	        android:id="@+id/surveyButton"
+	        android:layout_width="50dp"
+	        android:layout_height="fill_parent"
+	        android:layout_weight="1"
+	        android:background="@drawable/rounded_button"
+	        android:textSize="12sp"
+			android:text="in track mode"/>   	
+	    <Button 
+	        android:id="@+id/surveyConfirmButton"
+	        android:layout_width="50dp"
+	        android:layout_height="fill_parent"
+	        android:layout_weight="1"
+	        android:background="@drawable/rounded_button"
+	        android:textSize="12sp"
+			android:text="confirm survey pt"/>    	
+	</LinearLayout>    
+    
 </LinearLayout>

@@ -16,6 +16,7 @@ public class ZMQSubscriber extends Thread {
     private final Handler uiThreadHandler;
     private String[] zmqFilter;
     final ZContext zContext = new ZContext();
+//    final ZMQ.Context zContext = ZMQ.context(1);
     ZMQ.Socket socket;
     
     public ZMQSubscriber(Handler uiThreadHandler, String[] zmqFilter) { 
@@ -34,11 +35,10 @@ public class ZMQSubscriber extends Thread {
     		sendMessage(MainActivity.ZMQ_PROGRESS_MESSAGE, progress.getBytes("UTF-8"));  		
     		
     		String connectString = "tcp://"+MainActivity.aleHost+":7779";
-    		Context context = ZMQ.context(1);
     		socket = zContext.createSocket(ZMQ.SUB);
 			
 			boolean success = socket.connect(connectString);
-			
+    		
 			String filterString = "";
 			for(int i=0; i<zmqFilter.length; i++){
 				socket.subscribe(zmqFilter[i]);
@@ -62,8 +62,8 @@ public class ZMQSubscriber extends Thread {
 	        	}
         		sendMessage(topic, msg);
 	        }
+	        
 	        socket.close();
-	        context.term();
 	        
     	} catch (ZMQException e)    { 
     		Log.e(TAG, "ZMQException "+e);
@@ -107,13 +107,8 @@ public class ZMQSubscriber extends Thread {
     
     @Override
     public void interrupt(){
-    	try{
-    		socket.close();
-    	} finally{
-    		String s = "Closed socket";
-    		sendMessage(MainActivity.ZMQ_PROGRESS_MESSAGE, s.getBytes());
+    		Log.w(TAG, "interrupting ZMQ thread");
     		super.interrupt();
-    	}
     }
 
 

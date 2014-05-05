@@ -17,11 +17,12 @@ import android.util.Log;
 
 public class FindMyLocationAsyncTask extends AsyncTask < String, String, String> {
 	String TAG = "FindMyLocationAsyncTask";
+	int TIMEOUT_VALUE = 10000;
 	
 	protected String doInBackground(String... params) {
 		
-		// query for location of my mac
-		String result = JsonParsers.parseAleJsonLocation(readStreamString(runLookup("/api/v1/location.json?sta_eth_mac="+params[0])));
+		// query for location of my mac or target mac
+		String result = JsonParsers.parseAleJsonLocation(readStreamString(runLookup("/api/v1/location.json?sta_eth_mac="+params[0])), params[1]);
 		//result = JsonParsers.parseAleJsonLocation(readStreamString(runLookup("/api/v1/location.json?sta_eth_mac="+"00:23:14:D4:C8:48")));
 		return result;
 	}
@@ -29,7 +30,9 @@ public class FindMyLocationAsyncTask extends AsyncTask < String, String, String>
 	public void onPreExecute(){
 		Log.i(TAG, "FindMyLocationAsyncTask starting");
 		MainActivity.findMyLocationAsyncTaskInProgress = true;
-		MainActivity.httpStatusString = "Discovering my floor";
+		if(MainActivity.floorList != null){
+			MainActivity.httpStatusString1 = MainActivity.floorList.size()+" floors.  Discovering my floor";
+		}
 	}
 	
 	public void onPostExecute(String result){
@@ -45,7 +48,8 @@ public class FindMyLocationAsyncTask extends AsyncTask < String, String, String>
 			URL url = new URL("http://"+MainActivity.aleHost+":8080"+args);
 			Log.v(TAG, "URL get protocol "+url.getProtocol()+" host "+url.getHost()+" port "+url.getPort()+" file "+url.getFile());
 			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-			
+			connection.setConnectTimeout(TIMEOUT_VALUE);
+			connection.setReadTimeout(TIMEOUT_VALUE);
 			/*Map<String, List<String>> map = connection.getHeaderFields();
 			for(Entry<String, List<String>> entry : map.entrySet()) { 
 				for(int i=0; i<entry.getValue().size(); i++){
