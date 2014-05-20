@@ -1169,6 +1169,16 @@ public final class AleMsg {
      * <code>repeated bytes geofence_ids = 13;</code>
      */
     com.google.protobuf.ByteString getGeofenceIds(int index);
+
+    // optional .ce.nbapi.location.algorithm loc_algorithm = 14;
+    /**
+     * <code>optional .ce.nbapi.location.algorithm loc_algorithm = 14;</code>
+     */
+    boolean hasLocAlgorithm();
+    /**
+     * <code>optional .ce.nbapi.location.algorithm loc_algorithm = 14;</code>
+     */
+    com.arubanetworks.aledemonstrator.AleMsg.location.algorithm getLocAlgorithm();
   }
   /**
    * Protobuf type {@code ce.nbapi.location}
@@ -1282,6 +1292,17 @@ public final class AleMsg {
               geofenceIds_.add(input.readBytes());
               break;
             }
+            case 112: {
+              int rawValue = input.readEnum();
+              com.arubanetworks.aledemonstrator.AleMsg.location.algorithm value = com.arubanetworks.aledemonstrator.AleMsg.location.algorithm.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(14, rawValue);
+              } else {
+                bitField0_ |= 0x00000200;
+                locAlgorithm_ = value;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -1322,6 +1343,88 @@ public final class AleMsg {
     @java.lang.Override
     public com.google.protobuf.Parser<location> getParserForType() {
       return PARSER;
+    }
+
+    /**
+     * Protobuf enum {@code ce.nbapi.location.algorithm}
+     */
+    public enum algorithm
+        implements com.google.protobuf.ProtocolMessageEnum {
+      /**
+       * <code>ALGORITHM_TRIANGULATION = 0;</code>
+       */
+      ALGORITHM_TRIANGULATION(0, 0),
+      /**
+       * <code>ALGORITHM_AP_PLACEMENT = 1;</code>
+       */
+      ALGORITHM_AP_PLACEMENT(1, 1),
+      ;
+
+      /**
+       * <code>ALGORITHM_TRIANGULATION = 0;</code>
+       */
+      public static final int ALGORITHM_TRIANGULATION_VALUE = 0;
+      /**
+       * <code>ALGORITHM_AP_PLACEMENT = 1;</code>
+       */
+      public static final int ALGORITHM_AP_PLACEMENT_VALUE = 1;
+
+
+      public final int getNumber() { return value; }
+
+      public static algorithm valueOf(int value) {
+        switch (value) {
+          case 0: return ALGORITHM_TRIANGULATION;
+          case 1: return ALGORITHM_AP_PLACEMENT;
+          default: return null;
+        }
+      }
+
+      public static com.google.protobuf.Internal.EnumLiteMap<algorithm>
+          internalGetValueMap() {
+        return internalValueMap;
+      }
+      private static com.google.protobuf.Internal.EnumLiteMap<algorithm>
+          internalValueMap =
+            new com.google.protobuf.Internal.EnumLiteMap<algorithm>() {
+              public algorithm findValueByNumber(int number) {
+                return algorithm.valueOf(number);
+              }
+            };
+
+      public final com.google.protobuf.Descriptors.EnumValueDescriptor
+          getValueDescriptor() {
+        return getDescriptor().getValues().get(index);
+      }
+      public final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptorForType() {
+        return getDescriptor();
+      }
+      public static final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptor() {
+        return com.arubanetworks.aledemonstrator.AleMsg.location.getDescriptor().getEnumTypes().get(0);
+      }
+
+      private static final algorithm[] VALUES = values();
+
+      public static algorithm valueOf(
+          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        if (desc.getType() != getDescriptor()) {
+          throw new java.lang.IllegalArgumentException(
+            "EnumValueDescriptor is not for this type.");
+        }
+        return VALUES[desc.getIndex()];
+      }
+
+      private final int index;
+      private final int value;
+
+      private algorithm(int index, int value) {
+        this.index = index;
+        this.value = value;
+      }
+
+      // @@protoc_insertion_point(enum_scope:ce.nbapi.location.algorithm)
     }
 
     private int bitField0_;
@@ -1498,6 +1601,22 @@ public final class AleMsg {
       return geofenceIds_.get(index);
     }
 
+    // optional .ce.nbapi.location.algorithm loc_algorithm = 14;
+    public static final int LOC_ALGORITHM_FIELD_NUMBER = 14;
+    private com.arubanetworks.aledemonstrator.AleMsg.location.algorithm locAlgorithm_;
+    /**
+     * <code>optional .ce.nbapi.location.algorithm loc_algorithm = 14;</code>
+     */
+    public boolean hasLocAlgorithm() {
+      return ((bitField0_ & 0x00000200) == 0x00000200);
+    }
+    /**
+     * <code>optional .ce.nbapi.location.algorithm loc_algorithm = 14;</code>
+     */
+    public com.arubanetworks.aledemonstrator.AleMsg.location.algorithm getLocAlgorithm() {
+      return locAlgorithm_;
+    }
+
     private void initFields() {
       staEthMac_ = com.arubanetworks.aledemonstrator.AleMsg.mac_address.getDefaultInstance();
       staLocationX_ = 0F;
@@ -1509,6 +1628,7 @@ public final class AleMsg {
       floorId_ = com.google.protobuf.ByteString.EMPTY;
       hashedStaEthMac_ = com.google.protobuf.ByteString.EMPTY;
       geofenceIds_ = java.util.Collections.emptyList();
+      locAlgorithm_ = com.arubanetworks.aledemonstrator.AleMsg.location.algorithm.ALGORITHM_TRIANGULATION;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -1557,6 +1677,9 @@ public final class AleMsg {
       }
       for (int i = 0; i < geofenceIds_.size(); i++) {
         output.writeBytes(13, geofenceIds_.get(i));
+      }
+      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+        output.writeEnum(14, locAlgorithm_.getNumber());
       }
       getUnknownFields().writeTo(output);
     }
@@ -1611,6 +1734,10 @@ public final class AleMsg {
         }
         size += dataSize;
         size += 1 * getGeofenceIdsList().size();
+      }
+      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(14, locAlgorithm_.getNumber());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1753,6 +1880,8 @@ public final class AleMsg {
         bitField0_ = (bitField0_ & ~0x00000100);
         geofenceIds_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000200);
+        locAlgorithm_ = com.arubanetworks.aledemonstrator.AleMsg.location.algorithm.ALGORITHM_TRIANGULATION;
+        bitField0_ = (bitField0_ & ~0x00000400);
         return this;
       }
 
@@ -1826,6 +1955,10 @@ public final class AleMsg {
           bitField0_ = (bitField0_ & ~0x00000200);
         }
         result.geofenceIds_ = geofenceIds_;
+        if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
+          to_bitField0_ |= 0x00000200;
+        }
+        result.locAlgorithm_ = locAlgorithm_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -1878,6 +2011,9 @@ public final class AleMsg {
             geofenceIds_.addAll(other.geofenceIds_);
           }
           onChanged();
+        }
+        if (other.hasLocAlgorithm()) {
+          setLocAlgorithm(other.getLocAlgorithm());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -2373,6 +2509,42 @@ public final class AleMsg {
       public Builder clearGeofenceIds() {
         geofenceIds_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000200);
+        onChanged();
+        return this;
+      }
+
+      // optional .ce.nbapi.location.algorithm loc_algorithm = 14;
+      private com.arubanetworks.aledemonstrator.AleMsg.location.algorithm locAlgorithm_ = com.arubanetworks.aledemonstrator.AleMsg.location.algorithm.ALGORITHM_TRIANGULATION;
+      /**
+       * <code>optional .ce.nbapi.location.algorithm loc_algorithm = 14;</code>
+       */
+      public boolean hasLocAlgorithm() {
+        return ((bitField0_ & 0x00000400) == 0x00000400);
+      }
+      /**
+       * <code>optional .ce.nbapi.location.algorithm loc_algorithm = 14;</code>
+       */
+      public com.arubanetworks.aledemonstrator.AleMsg.location.algorithm getLocAlgorithm() {
+        return locAlgorithm_;
+      }
+      /**
+       * <code>optional .ce.nbapi.location.algorithm loc_algorithm = 14;</code>
+       */
+      public Builder setLocAlgorithm(com.arubanetworks.aledemonstrator.AleMsg.location.algorithm value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        bitField0_ |= 0x00000400;
+        locAlgorithm_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .ce.nbapi.location.algorithm loc_algorithm = 14;</code>
+       */
+      public Builder clearLocAlgorithm() {
+        bitField0_ = (bitField0_ & ~0x00000400);
+        locAlgorithm_ = com.arubanetworks.aledemonstrator.AleMsg.location.algorithm.ALGORITHM_TRIANGULATION;
         onChanged();
         return this;
       }
@@ -6998,16 +7170,6 @@ public final class AleMsg {
      */
     com.arubanetworks.aledemonstrator.AleMsg.mac_addressOrBuilder getRadioBssidOrBuilder();
 
-    // optional .ce.nbapi.radio.radio_phy_type phy_type = 3;
-    /**
-     * <code>optional .ce.nbapi.radio.radio_phy_type phy_type = 3;</code>
-     */
-    boolean hasPhyType();
-    /**
-     * <code>optional .ce.nbapi.radio.radio_phy_type phy_type = 3;</code>
-     */
-    com.arubanetworks.aledemonstrator.AleMsg.radio.radio_phy_type getPhyType();
-
     // optional .ce.nbapi.radio.radio_mode mode = 4;
     /**
      * <code>optional .ce.nbapi.radio.radio_mode mode = 4;</code>
@@ -7017,6 +7179,26 @@ public final class AleMsg {
      * <code>optional .ce.nbapi.radio.radio_mode mode = 4;</code>
      */
     com.arubanetworks.aledemonstrator.AleMsg.radio.radio_mode getMode();
+
+    // optional .ce.nbapi.radio.phy_type phy = 5;
+    /**
+     * <code>optional .ce.nbapi.radio.phy_type phy = 5;</code>
+     */
+    boolean hasPhy();
+    /**
+     * <code>optional .ce.nbapi.radio.phy_type phy = 5;</code>
+     */
+    com.arubanetworks.aledemonstrator.AleMsg.radio.phy_type getPhy();
+
+    // optional .ce.nbapi.radio.ht_type ht = 6;
+    /**
+     * <code>optional .ce.nbapi.radio.ht_type ht = 6;</code>
+     */
+    boolean hasHt();
+    /**
+     * <code>optional .ce.nbapi.radio.ht_type ht = 6;</code>
+     */
+    com.arubanetworks.aledemonstrator.AleMsg.radio.ht_type getHt();
   }
   /**
    * Protobuf type {@code ce.nbapi.radio}
@@ -7095,25 +7277,36 @@ public final class AleMsg {
               bitField0_ |= 0x00000002;
               break;
             }
-            case 24: {
-              int rawValue = input.readEnum();
-              com.arubanetworks.aledemonstrator.AleMsg.radio.radio_phy_type value = com.arubanetworks.aledemonstrator.AleMsg.radio.radio_phy_type.valueOf(rawValue);
-              if (value == null) {
-                unknownFields.mergeVarintField(3, rawValue);
-              } else {
-                bitField0_ |= 0x00000004;
-                phyType_ = value;
-              }
-              break;
-            }
             case 32: {
               int rawValue = input.readEnum();
               com.arubanetworks.aledemonstrator.AleMsg.radio.radio_mode value = com.arubanetworks.aledemonstrator.AleMsg.radio.radio_mode.valueOf(rawValue);
               if (value == null) {
                 unknownFields.mergeVarintField(4, rawValue);
               } else {
-                bitField0_ |= 0x00000008;
+                bitField0_ |= 0x00000004;
                 mode_ = value;
+              }
+              break;
+            }
+            case 40: {
+              int rawValue = input.readEnum();
+              com.arubanetworks.aledemonstrator.AleMsg.radio.phy_type value = com.arubanetworks.aledemonstrator.AleMsg.radio.phy_type.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(5, rawValue);
+              } else {
+                bitField0_ |= 0x00000008;
+                phy_ = value;
+              }
+              break;
+            }
+            case 48: {
+              int rawValue = input.readEnum();
+              com.arubanetworks.aledemonstrator.AleMsg.radio.ht_type value = com.arubanetworks.aledemonstrator.AleMsg.radio.ht_type.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(6, rawValue);
+              } else {
+                bitField0_ |= 0x00000010;
+                ht_ = value;
               }
               break;
             }
@@ -7157,151 +7350,6 @@ public final class AleMsg {
     }
 
     /**
-     * Protobuf enum {@code ce.nbapi.radio.radio_phy_type}
-     */
-    public enum radio_phy_type
-        implements com.google.protobuf.ProtocolMessageEnum {
-      /**
-       * <code>RADIO_PHY_TYPE_A = 0;</code>
-       */
-      RADIO_PHY_TYPE_A(0, 0),
-      /**
-       * <code>RADIO_PHY_TYPE_A_HT = 1;</code>
-       */
-      RADIO_PHY_TYPE_A_HT(1, 1),
-      /**
-       * <code>RADIO_PHY_TYPE_A_HT_40 = 2;</code>
-       */
-      RADIO_PHY_TYPE_A_HT_40(2, 2),
-      /**
-       * <code>RADIO_PHY_TYPE_B_G = 3;</code>
-       */
-      RADIO_PHY_TYPE_B_G(3, 3),
-      /**
-       * <code>RADIO_PHY_TYPE_B_G_HT = 4;</code>
-       */
-      RADIO_PHY_TYPE_B_G_HT(4, 4),
-      /**
-       * <code>RADIO_PHY_TYPE_B_G_HT_40 = 5;</code>
-       */
-      RADIO_PHY_TYPE_B_G_HT_40(5, 5),
-      /**
-       * <code>RADIO_PHY_TYPE_AC_HT = 6;</code>
-       */
-      RADIO_PHY_TYPE_AC_HT(6, 6),
-      /**
-       * <code>RADIO_PHY_TYPE_AC_HT_40 = 7;</code>
-       */
-      RADIO_PHY_TYPE_AC_HT_40(7, 7),
-      /**
-       * <code>RADIO_PHY_TYPE_AC_HT_80 = 8;</code>
-       */
-      RADIO_PHY_TYPE_AC_HT_80(8, 8),
-      ;
-
-      /**
-       * <code>RADIO_PHY_TYPE_A = 0;</code>
-       */
-      public static final int RADIO_PHY_TYPE_A_VALUE = 0;
-      /**
-       * <code>RADIO_PHY_TYPE_A_HT = 1;</code>
-       */
-      public static final int RADIO_PHY_TYPE_A_HT_VALUE = 1;
-      /**
-       * <code>RADIO_PHY_TYPE_A_HT_40 = 2;</code>
-       */
-      public static final int RADIO_PHY_TYPE_A_HT_40_VALUE = 2;
-      /**
-       * <code>RADIO_PHY_TYPE_B_G = 3;</code>
-       */
-      public static final int RADIO_PHY_TYPE_B_G_VALUE = 3;
-      /**
-       * <code>RADIO_PHY_TYPE_B_G_HT = 4;</code>
-       */
-      public static final int RADIO_PHY_TYPE_B_G_HT_VALUE = 4;
-      /**
-       * <code>RADIO_PHY_TYPE_B_G_HT_40 = 5;</code>
-       */
-      public static final int RADIO_PHY_TYPE_B_G_HT_40_VALUE = 5;
-      /**
-       * <code>RADIO_PHY_TYPE_AC_HT = 6;</code>
-       */
-      public static final int RADIO_PHY_TYPE_AC_HT_VALUE = 6;
-      /**
-       * <code>RADIO_PHY_TYPE_AC_HT_40 = 7;</code>
-       */
-      public static final int RADIO_PHY_TYPE_AC_HT_40_VALUE = 7;
-      /**
-       * <code>RADIO_PHY_TYPE_AC_HT_80 = 8;</code>
-       */
-      public static final int RADIO_PHY_TYPE_AC_HT_80_VALUE = 8;
-
-
-      public final int getNumber() { return value; }
-
-      public static radio_phy_type valueOf(int value) {
-        switch (value) {
-          case 0: return RADIO_PHY_TYPE_A;
-          case 1: return RADIO_PHY_TYPE_A_HT;
-          case 2: return RADIO_PHY_TYPE_A_HT_40;
-          case 3: return RADIO_PHY_TYPE_B_G;
-          case 4: return RADIO_PHY_TYPE_B_G_HT;
-          case 5: return RADIO_PHY_TYPE_B_G_HT_40;
-          case 6: return RADIO_PHY_TYPE_AC_HT;
-          case 7: return RADIO_PHY_TYPE_AC_HT_40;
-          case 8: return RADIO_PHY_TYPE_AC_HT_80;
-          default: return null;
-        }
-      }
-
-      public static com.google.protobuf.Internal.EnumLiteMap<radio_phy_type>
-          internalGetValueMap() {
-        return internalValueMap;
-      }
-      private static com.google.protobuf.Internal.EnumLiteMap<radio_phy_type>
-          internalValueMap =
-            new com.google.protobuf.Internal.EnumLiteMap<radio_phy_type>() {
-              public radio_phy_type findValueByNumber(int number) {
-                return radio_phy_type.valueOf(number);
-              }
-            };
-
-      public final com.google.protobuf.Descriptors.EnumValueDescriptor
-          getValueDescriptor() {
-        return getDescriptor().getValues().get(index);
-      }
-      public final com.google.protobuf.Descriptors.EnumDescriptor
-          getDescriptorForType() {
-        return getDescriptor();
-      }
-      public static final com.google.protobuf.Descriptors.EnumDescriptor
-          getDescriptor() {
-        return com.arubanetworks.aledemonstrator.AleMsg.radio.getDescriptor().getEnumTypes().get(0);
-      }
-
-      private static final radio_phy_type[] VALUES = values();
-
-      public static radio_phy_type valueOf(
-          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
-        if (desc.getType() != getDescriptor()) {
-          throw new java.lang.IllegalArgumentException(
-            "EnumValueDescriptor is not for this type.");
-        }
-        return VALUES[desc.getIndex()];
-      }
-
-      private final int index;
-      private final int value;
-
-      private radio_phy_type(int index, int value) {
-        this.index = index;
-        this.value = value;
-      }
-
-      // @@protoc_insertion_point(enum_scope:ce.nbapi.radio.radio_phy_type)
-    }
-
-    /**
      * Protobuf enum {@code ce.nbapi.radio.radio_mode}
      */
     public enum radio_mode
@@ -7326,6 +7374,10 @@ public final class AleMsg {
        * <code>RADIO_MODE_SPECTRUM_SENSOR = 4;</code>
        */
       RADIO_MODE_SPECTRUM_SENSOR(4, 4),
+      /**
+       * <code>RADIO_MODE_UNKNOWN = 5;</code>
+       */
+      RADIO_MODE_UNKNOWN(5, 5),
       ;
 
       /**
@@ -7348,6 +7400,10 @@ public final class AleMsg {
        * <code>RADIO_MODE_SPECTRUM_SENSOR = 4;</code>
        */
       public static final int RADIO_MODE_SPECTRUM_SENSOR_VALUE = 4;
+      /**
+       * <code>RADIO_MODE_UNKNOWN = 5;</code>
+       */
+      public static final int RADIO_MODE_UNKNOWN_VALUE = 5;
 
 
       public final int getNumber() { return value; }
@@ -7359,6 +7415,7 @@ public final class AleMsg {
           case 2: return RADIO_MODE_MESH_POINT;
           case 3: return RADIO_MODE_AIR_MONITOR;
           case 4: return RADIO_MODE_SPECTRUM_SENSOR;
+          case 5: return RADIO_MODE_UNKNOWN;
           default: return null;
         }
       }
@@ -7385,7 +7442,7 @@ public final class AleMsg {
       }
       public static final com.google.protobuf.Descriptors.EnumDescriptor
           getDescriptor() {
-        return com.arubanetworks.aledemonstrator.AleMsg.radio.getDescriptor().getEnumTypes().get(1);
+        return com.arubanetworks.aledemonstrator.AleMsg.radio.getDescriptor().getEnumTypes().get(0);
       }
 
       private static final radio_mode[] VALUES = values();
@@ -7408,6 +7465,215 @@ public final class AleMsg {
       }
 
       // @@protoc_insertion_point(enum_scope:ce.nbapi.radio.radio_mode)
+    }
+
+    /**
+     * Protobuf enum {@code ce.nbapi.radio.phy_type}
+     */
+    public enum phy_type
+        implements com.google.protobuf.ProtocolMessageEnum {
+      /**
+       * <code>PHY_TYPE_80211B = 0;</code>
+       */
+      PHY_TYPE_80211B(0, 0),
+      /**
+       * <code>PHY_TYPE_80211A = 1;</code>
+       */
+      PHY_TYPE_80211A(1, 1),
+      /**
+       * <code>PHY_TYPE_80211G = 2;</code>
+       */
+      PHY_TYPE_80211G(2, 2),
+      ;
+
+      /**
+       * <code>PHY_TYPE_80211B = 0;</code>
+       */
+      public static final int PHY_TYPE_80211B_VALUE = 0;
+      /**
+       * <code>PHY_TYPE_80211A = 1;</code>
+       */
+      public static final int PHY_TYPE_80211A_VALUE = 1;
+      /**
+       * <code>PHY_TYPE_80211G = 2;</code>
+       */
+      public static final int PHY_TYPE_80211G_VALUE = 2;
+
+
+      public final int getNumber() { return value; }
+
+      public static phy_type valueOf(int value) {
+        switch (value) {
+          case 0: return PHY_TYPE_80211B;
+          case 1: return PHY_TYPE_80211A;
+          case 2: return PHY_TYPE_80211G;
+          default: return null;
+        }
+      }
+
+      public static com.google.protobuf.Internal.EnumLiteMap<phy_type>
+          internalGetValueMap() {
+        return internalValueMap;
+      }
+      private static com.google.protobuf.Internal.EnumLiteMap<phy_type>
+          internalValueMap =
+            new com.google.protobuf.Internal.EnumLiteMap<phy_type>() {
+              public phy_type findValueByNumber(int number) {
+                return phy_type.valueOf(number);
+              }
+            };
+
+      public final com.google.protobuf.Descriptors.EnumValueDescriptor
+          getValueDescriptor() {
+        return getDescriptor().getValues().get(index);
+      }
+      public final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptorForType() {
+        return getDescriptor();
+      }
+      public static final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptor() {
+        return com.arubanetworks.aledemonstrator.AleMsg.radio.getDescriptor().getEnumTypes().get(1);
+      }
+
+      private static final phy_type[] VALUES = values();
+
+      public static phy_type valueOf(
+          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        if (desc.getType() != getDescriptor()) {
+          throw new java.lang.IllegalArgumentException(
+            "EnumValueDescriptor is not for this type.");
+        }
+        return VALUES[desc.getIndex()];
+      }
+
+      private final int index;
+      private final int value;
+
+      private phy_type(int index, int value) {
+        this.index = index;
+        this.value = value;
+      }
+
+      // @@protoc_insertion_point(enum_scope:ce.nbapi.radio.phy_type)
+    }
+
+    /**
+     * Protobuf enum {@code ce.nbapi.radio.ht_type}
+     */
+    public enum ht_type
+        implements com.google.protobuf.ProtocolMessageEnum {
+      /**
+       * <code>HTT_NONE = 0;</code>
+       */
+      HTT_NONE(0, 0),
+      /**
+       * <code>HTT_20MZ = 1;</code>
+       */
+      HTT_20MZ(1, 1),
+      /**
+       * <code>HTT_40MZ = 2;</code>
+       */
+      HTT_40MZ(2, 2),
+      /**
+       * <code>HTT_VHT_20MZ = 3;</code>
+       */
+      HTT_VHT_20MZ(3, 3),
+      /**
+       * <code>HTT_VHT_40MZ = 4;</code>
+       */
+      HTT_VHT_40MZ(4, 4),
+      /**
+       * <code>HTT_VHT_80MZ = 5;</code>
+       */
+      HTT_VHT_80MZ(5, 5),
+      ;
+
+      /**
+       * <code>HTT_NONE = 0;</code>
+       */
+      public static final int HTT_NONE_VALUE = 0;
+      /**
+       * <code>HTT_20MZ = 1;</code>
+       */
+      public static final int HTT_20MZ_VALUE = 1;
+      /**
+       * <code>HTT_40MZ = 2;</code>
+       */
+      public static final int HTT_40MZ_VALUE = 2;
+      /**
+       * <code>HTT_VHT_20MZ = 3;</code>
+       */
+      public static final int HTT_VHT_20MZ_VALUE = 3;
+      /**
+       * <code>HTT_VHT_40MZ = 4;</code>
+       */
+      public static final int HTT_VHT_40MZ_VALUE = 4;
+      /**
+       * <code>HTT_VHT_80MZ = 5;</code>
+       */
+      public static final int HTT_VHT_80MZ_VALUE = 5;
+
+
+      public final int getNumber() { return value; }
+
+      public static ht_type valueOf(int value) {
+        switch (value) {
+          case 0: return HTT_NONE;
+          case 1: return HTT_20MZ;
+          case 2: return HTT_40MZ;
+          case 3: return HTT_VHT_20MZ;
+          case 4: return HTT_VHT_40MZ;
+          case 5: return HTT_VHT_80MZ;
+          default: return null;
+        }
+      }
+
+      public static com.google.protobuf.Internal.EnumLiteMap<ht_type>
+          internalGetValueMap() {
+        return internalValueMap;
+      }
+      private static com.google.protobuf.Internal.EnumLiteMap<ht_type>
+          internalValueMap =
+            new com.google.protobuf.Internal.EnumLiteMap<ht_type>() {
+              public ht_type findValueByNumber(int number) {
+                return ht_type.valueOf(number);
+              }
+            };
+
+      public final com.google.protobuf.Descriptors.EnumValueDescriptor
+          getValueDescriptor() {
+        return getDescriptor().getValues().get(index);
+      }
+      public final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptorForType() {
+        return getDescriptor();
+      }
+      public static final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptor() {
+        return com.arubanetworks.aledemonstrator.AleMsg.radio.getDescriptor().getEnumTypes().get(2);
+      }
+
+      private static final ht_type[] VALUES = values();
+
+      public static ht_type valueOf(
+          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        if (desc.getType() != getDescriptor()) {
+          throw new java.lang.IllegalArgumentException(
+            "EnumValueDescriptor is not for this type.");
+        }
+        return VALUES[desc.getIndex()];
+      }
+
+      private final int index;
+      private final int value;
+
+      private ht_type(int index, int value) {
+        this.index = index;
+        this.value = value;
+      }
+
+      // @@protoc_insertion_point(enum_scope:ce.nbapi.radio.ht_type)
     }
 
     private int bitField0_;
@@ -7455,22 +7721,6 @@ public final class AleMsg {
       return radioBssid_;
     }
 
-    // optional .ce.nbapi.radio.radio_phy_type phy_type = 3;
-    public static final int PHY_TYPE_FIELD_NUMBER = 3;
-    private com.arubanetworks.aledemonstrator.AleMsg.radio.radio_phy_type phyType_;
-    /**
-     * <code>optional .ce.nbapi.radio.radio_phy_type phy_type = 3;</code>
-     */
-    public boolean hasPhyType() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    /**
-     * <code>optional .ce.nbapi.radio.radio_phy_type phy_type = 3;</code>
-     */
-    public com.arubanetworks.aledemonstrator.AleMsg.radio.radio_phy_type getPhyType() {
-      return phyType_;
-    }
-
     // optional .ce.nbapi.radio.radio_mode mode = 4;
     public static final int MODE_FIELD_NUMBER = 4;
     private com.arubanetworks.aledemonstrator.AleMsg.radio.radio_mode mode_;
@@ -7478,7 +7728,7 @@ public final class AleMsg {
      * <code>optional .ce.nbapi.radio.radio_mode mode = 4;</code>
      */
     public boolean hasMode() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
      * <code>optional .ce.nbapi.radio.radio_mode mode = 4;</code>
@@ -7487,11 +7737,44 @@ public final class AleMsg {
       return mode_;
     }
 
+    // optional .ce.nbapi.radio.phy_type phy = 5;
+    public static final int PHY_FIELD_NUMBER = 5;
+    private com.arubanetworks.aledemonstrator.AleMsg.radio.phy_type phy_;
+    /**
+     * <code>optional .ce.nbapi.radio.phy_type phy = 5;</code>
+     */
+    public boolean hasPhy() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional .ce.nbapi.radio.phy_type phy = 5;</code>
+     */
+    public com.arubanetworks.aledemonstrator.AleMsg.radio.phy_type getPhy() {
+      return phy_;
+    }
+
+    // optional .ce.nbapi.radio.ht_type ht = 6;
+    public static final int HT_FIELD_NUMBER = 6;
+    private com.arubanetworks.aledemonstrator.AleMsg.radio.ht_type ht_;
+    /**
+     * <code>optional .ce.nbapi.radio.ht_type ht = 6;</code>
+     */
+    public boolean hasHt() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional .ce.nbapi.radio.ht_type ht = 6;</code>
+     */
+    public com.arubanetworks.aledemonstrator.AleMsg.radio.ht_type getHt() {
+      return ht_;
+    }
+
     private void initFields() {
       apEthMac_ = com.arubanetworks.aledemonstrator.AleMsg.mac_address.getDefaultInstance();
       radioBssid_ = com.arubanetworks.aledemonstrator.AleMsg.mac_address.getDefaultInstance();
-      phyType_ = com.arubanetworks.aledemonstrator.AleMsg.radio.radio_phy_type.RADIO_PHY_TYPE_A;
       mode_ = com.arubanetworks.aledemonstrator.AleMsg.radio.radio_mode.RADIO_MODE_AP;
+      phy_ = com.arubanetworks.aledemonstrator.AleMsg.radio.phy_type.PHY_TYPE_80211B;
+      ht_ = com.arubanetworks.aledemonstrator.AleMsg.radio.ht_type.HTT_NONE;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -7524,10 +7807,13 @@ public final class AleMsg {
         output.writeMessage(2, radioBssid_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeEnum(3, phyType_.getNumber());
+        output.writeEnum(4, mode_.getNumber());
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeEnum(4, mode_.getNumber());
+        output.writeEnum(5, phy_.getNumber());
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeEnum(6, ht_.getNumber());
       }
       getUnknownFields().writeTo(output);
     }
@@ -7548,11 +7834,15 @@ public final class AleMsg {
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(3, phyType_.getNumber());
+          .computeEnumSize(4, mode_.getNumber());
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeEnumSize(4, mode_.getNumber());
+          .computeEnumSize(5, phy_.getNumber());
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(6, ht_.getNumber());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -7684,10 +7974,12 @@ public final class AleMsg {
           radioBssidBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000002);
-        phyType_ = com.arubanetworks.aledemonstrator.AleMsg.radio.radio_phy_type.RADIO_PHY_TYPE_A;
-        bitField0_ = (bitField0_ & ~0x00000004);
         mode_ = com.arubanetworks.aledemonstrator.AleMsg.radio.radio_mode.RADIO_MODE_AP;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        phy_ = com.arubanetworks.aledemonstrator.AleMsg.radio.phy_type.PHY_TYPE_80211B;
         bitField0_ = (bitField0_ & ~0x00000008);
+        ht_ = com.arubanetworks.aledemonstrator.AleMsg.radio.ht_type.HTT_NONE;
+        bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
 
@@ -7735,11 +8027,15 @@ public final class AleMsg {
         if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
           to_bitField0_ |= 0x00000004;
         }
-        result.phyType_ = phyType_;
+        result.mode_ = mode_;
         if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
           to_bitField0_ |= 0x00000008;
         }
-        result.mode_ = mode_;
+        result.phy_ = phy_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.ht_ = ht_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -7762,11 +8058,14 @@ public final class AleMsg {
         if (other.hasRadioBssid()) {
           mergeRadioBssid(other.getRadioBssid());
         }
-        if (other.hasPhyType()) {
-          setPhyType(other.getPhyType());
-        }
         if (other.hasMode()) {
           setMode(other.getMode());
+        }
+        if (other.hasPhy()) {
+          setPhy(other.getPhy());
+        }
+        if (other.hasHt()) {
+          setHt(other.getHt());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -8041,49 +8340,13 @@ public final class AleMsg {
         return radioBssidBuilder_;
       }
 
-      // optional .ce.nbapi.radio.radio_phy_type phy_type = 3;
-      private com.arubanetworks.aledemonstrator.AleMsg.radio.radio_phy_type phyType_ = com.arubanetworks.aledemonstrator.AleMsg.radio.radio_phy_type.RADIO_PHY_TYPE_A;
-      /**
-       * <code>optional .ce.nbapi.radio.radio_phy_type phy_type = 3;</code>
-       */
-      public boolean hasPhyType() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
-      }
-      /**
-       * <code>optional .ce.nbapi.radio.radio_phy_type phy_type = 3;</code>
-       */
-      public com.arubanetworks.aledemonstrator.AleMsg.radio.radio_phy_type getPhyType() {
-        return phyType_;
-      }
-      /**
-       * <code>optional .ce.nbapi.radio.radio_phy_type phy_type = 3;</code>
-       */
-      public Builder setPhyType(com.arubanetworks.aledemonstrator.AleMsg.radio.radio_phy_type value) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        bitField0_ |= 0x00000004;
-        phyType_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional .ce.nbapi.radio.radio_phy_type phy_type = 3;</code>
-       */
-      public Builder clearPhyType() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        phyType_ = com.arubanetworks.aledemonstrator.AleMsg.radio.radio_phy_type.RADIO_PHY_TYPE_A;
-        onChanged();
-        return this;
-      }
-
       // optional .ce.nbapi.radio.radio_mode mode = 4;
       private com.arubanetworks.aledemonstrator.AleMsg.radio.radio_mode mode_ = com.arubanetworks.aledemonstrator.AleMsg.radio.radio_mode.RADIO_MODE_AP;
       /**
        * <code>optional .ce.nbapi.radio.radio_mode mode = 4;</code>
        */
       public boolean hasMode() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
+        return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
        * <code>optional .ce.nbapi.radio.radio_mode mode = 4;</code>
@@ -8098,7 +8361,7 @@ public final class AleMsg {
         if (value == null) {
           throw new NullPointerException();
         }
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         mode_ = value;
         onChanged();
         return this;
@@ -8107,8 +8370,80 @@ public final class AleMsg {
        * <code>optional .ce.nbapi.radio.radio_mode mode = 4;</code>
        */
       public Builder clearMode() {
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000004);
         mode_ = com.arubanetworks.aledemonstrator.AleMsg.radio.radio_mode.RADIO_MODE_AP;
+        onChanged();
+        return this;
+      }
+
+      // optional .ce.nbapi.radio.phy_type phy = 5;
+      private com.arubanetworks.aledemonstrator.AleMsg.radio.phy_type phy_ = com.arubanetworks.aledemonstrator.AleMsg.radio.phy_type.PHY_TYPE_80211B;
+      /**
+       * <code>optional .ce.nbapi.radio.phy_type phy = 5;</code>
+       */
+      public boolean hasPhy() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional .ce.nbapi.radio.phy_type phy = 5;</code>
+       */
+      public com.arubanetworks.aledemonstrator.AleMsg.radio.phy_type getPhy() {
+        return phy_;
+      }
+      /**
+       * <code>optional .ce.nbapi.radio.phy_type phy = 5;</code>
+       */
+      public Builder setPhy(com.arubanetworks.aledemonstrator.AleMsg.radio.phy_type value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        bitField0_ |= 0x00000008;
+        phy_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .ce.nbapi.radio.phy_type phy = 5;</code>
+       */
+      public Builder clearPhy() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        phy_ = com.arubanetworks.aledemonstrator.AleMsg.radio.phy_type.PHY_TYPE_80211B;
+        onChanged();
+        return this;
+      }
+
+      // optional .ce.nbapi.radio.ht_type ht = 6;
+      private com.arubanetworks.aledemonstrator.AleMsg.radio.ht_type ht_ = com.arubanetworks.aledemonstrator.AleMsg.radio.ht_type.HTT_NONE;
+      /**
+       * <code>optional .ce.nbapi.radio.ht_type ht = 6;</code>
+       */
+      public boolean hasHt() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional .ce.nbapi.radio.ht_type ht = 6;</code>
+       */
+      public com.arubanetworks.aledemonstrator.AleMsg.radio.ht_type getHt() {
+        return ht_;
+      }
+      /**
+       * <code>optional .ce.nbapi.radio.ht_type ht = 6;</code>
+       */
+      public Builder setHt(com.arubanetworks.aledemonstrator.AleMsg.radio.ht_type value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        bitField0_ |= 0x00000010;
+        ht_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .ce.nbapi.radio.ht_type ht = 6;</code>
+       */
+      public Builder clearHt() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        ht_ = com.arubanetworks.aledemonstrator.AleMsg.radio.ht_type.HTT_NONE;
         onChanged();
         return this;
       }
@@ -10525,6 +10860,41 @@ public final class AleMsg {
      */
     com.google.protobuf.ByteString
         getAppNameBytes();
+
+    // optional uint32 cc_cat_id = 13;
+    /**
+     * <code>optional uint32 cc_cat_id = 13;</code>
+     */
+    boolean hasCcCatId();
+    /**
+     * <code>optional uint32 cc_cat_id = 13;</code>
+     */
+    int getCcCatId();
+
+    // optional uint32 cc_rep_score = 14;
+    /**
+     * <code>optional uint32 cc_rep_score = 14;</code>
+     */
+    boolean hasCcRepScore();
+    /**
+     * <code>optional uint32 cc_rep_score = 14;</code>
+     */
+    int getCcRepScore();
+
+    // optional string cc_url_prefix = 15;
+    /**
+     * <code>optional string cc_url_prefix = 15;</code>
+     */
+    boolean hasCcUrlPrefix();
+    /**
+     * <code>optional string cc_url_prefix = 15;</code>
+     */
+    java.lang.String getCcUrlPrefix();
+    /**
+     * <code>optional string cc_url_prefix = 15;</code>
+     */
+    com.google.protobuf.ByteString
+        getCcUrlPrefixBytes();
   }
   /**
    * Protobuf type {@code ce.nbapi.visibility_rec}
@@ -10665,6 +11035,21 @@ public final class AleMsg {
             case 98: {
               bitField0_ |= 0x00000800;
               appName_ = input.readBytes();
+              break;
+            }
+            case 104: {
+              bitField0_ |= 0x00001000;
+              ccCatId_ = input.readUInt32();
+              break;
+            }
+            case 112: {
+              bitField0_ |= 0x00002000;
+              ccRepScore_ = input.readUInt32();
+              break;
+            }
+            case 122: {
+              bitField0_ |= 0x00004000;
+              ccUrlPrefix_ = input.readBytes();
               break;
             }
           }
@@ -11026,6 +11411,81 @@ public final class AleMsg {
       }
     }
 
+    // optional uint32 cc_cat_id = 13;
+    public static final int CC_CAT_ID_FIELD_NUMBER = 13;
+    private int ccCatId_;
+    /**
+     * <code>optional uint32 cc_cat_id = 13;</code>
+     */
+    public boolean hasCcCatId() {
+      return ((bitField0_ & 0x00001000) == 0x00001000);
+    }
+    /**
+     * <code>optional uint32 cc_cat_id = 13;</code>
+     */
+    public int getCcCatId() {
+      return ccCatId_;
+    }
+
+    // optional uint32 cc_rep_score = 14;
+    public static final int CC_REP_SCORE_FIELD_NUMBER = 14;
+    private int ccRepScore_;
+    /**
+     * <code>optional uint32 cc_rep_score = 14;</code>
+     */
+    public boolean hasCcRepScore() {
+      return ((bitField0_ & 0x00002000) == 0x00002000);
+    }
+    /**
+     * <code>optional uint32 cc_rep_score = 14;</code>
+     */
+    public int getCcRepScore() {
+      return ccRepScore_;
+    }
+
+    // optional string cc_url_prefix = 15;
+    public static final int CC_URL_PREFIX_FIELD_NUMBER = 15;
+    private java.lang.Object ccUrlPrefix_;
+    /**
+     * <code>optional string cc_url_prefix = 15;</code>
+     */
+    public boolean hasCcUrlPrefix() {
+      return ((bitField0_ & 0x00004000) == 0x00004000);
+    }
+    /**
+     * <code>optional string cc_url_prefix = 15;</code>
+     */
+    public java.lang.String getCcUrlPrefix() {
+      java.lang.Object ref = ccUrlPrefix_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          ccUrlPrefix_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string cc_url_prefix = 15;</code>
+     */
+    public com.google.protobuf.ByteString
+        getCcUrlPrefixBytes() {
+      java.lang.Object ref = ccUrlPrefix_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ccUrlPrefix_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private void initFields() {
       clientIp_ = com.arubanetworks.aledemonstrator.AleMsg.ip_address.getDefaultInstance();
       destIp_ = com.arubanetworks.aledemonstrator.AleMsg.ip_address.getDefaultInstance();
@@ -11039,6 +11499,9 @@ public final class AleMsg {
       deviceMac_ = com.arubanetworks.aledemonstrator.AleMsg.mac_address.getDefaultInstance();
       hashedDeviceMac_ = com.google.protobuf.ByteString.EMPTY;
       appName_ = "";
+      ccCatId_ = 0;
+      ccRepScore_ = 0;
+      ccUrlPrefix_ = "";
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -11106,6 +11569,15 @@ public final class AleMsg {
       if (((bitField0_ & 0x00000800) == 0x00000800)) {
         output.writeBytes(12, getAppNameBytes());
       }
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+        output.writeUInt32(13, ccCatId_);
+      }
+      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+        output.writeUInt32(14, ccRepScore_);
+      }
+      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+        output.writeBytes(15, getCcUrlPrefixBytes());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -11162,6 +11634,18 @@ public final class AleMsg {
       if (((bitField0_ & 0x00000800) == 0x00000800)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(12, getAppNameBytes());
+      }
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(13, ccCatId_);
+      }
+      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(14, ccRepScore_);
+      }
+      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(15, getCcUrlPrefixBytes());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -11318,6 +11802,12 @@ public final class AleMsg {
         bitField0_ = (bitField0_ & ~0x00000400);
         appName_ = "";
         bitField0_ = (bitField0_ & ~0x00000800);
+        ccCatId_ = 0;
+        bitField0_ = (bitField0_ & ~0x00001000);
+        ccRepScore_ = 0;
+        bitField0_ = (bitField0_ & ~0x00002000);
+        ccUrlPrefix_ = "";
+        bitField0_ = (bitField0_ & ~0x00004000);
         return this;
       }
 
@@ -11406,6 +11896,18 @@ public final class AleMsg {
           to_bitField0_ |= 0x00000800;
         }
         result.appName_ = appName_;
+        if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
+          to_bitField0_ |= 0x00001000;
+        }
+        result.ccCatId_ = ccCatId_;
+        if (((from_bitField0_ & 0x00002000) == 0x00002000)) {
+          to_bitField0_ |= 0x00002000;
+        }
+        result.ccRepScore_ = ccRepScore_;
+        if (((from_bitField0_ & 0x00004000) == 0x00004000)) {
+          to_bitField0_ |= 0x00004000;
+        }
+        result.ccUrlPrefix_ = ccUrlPrefix_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -11458,6 +11960,17 @@ public final class AleMsg {
         if (other.hasAppName()) {
           bitField0_ |= 0x00000800;
           appName_ = other.appName_;
+          onChanged();
+        }
+        if (other.hasCcCatId()) {
+          setCcCatId(other.getCcCatId());
+        }
+        if (other.hasCcRepScore()) {
+          setCcRepScore(other.getCcRepScore());
+        }
+        if (other.hasCcUrlPrefix()) {
+          bitField0_ |= 0x00004000;
+          ccUrlPrefix_ = other.ccUrlPrefix_;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -12199,6 +12712,146 @@ public final class AleMsg {
   }
   bitField0_ |= 0x00000800;
         appName_ = value;
+        onChanged();
+        return this;
+      }
+
+      // optional uint32 cc_cat_id = 13;
+      private int ccCatId_ ;
+      /**
+       * <code>optional uint32 cc_cat_id = 13;</code>
+       */
+      public boolean hasCcCatId() {
+        return ((bitField0_ & 0x00001000) == 0x00001000);
+      }
+      /**
+       * <code>optional uint32 cc_cat_id = 13;</code>
+       */
+      public int getCcCatId() {
+        return ccCatId_;
+      }
+      /**
+       * <code>optional uint32 cc_cat_id = 13;</code>
+       */
+      public Builder setCcCatId(int value) {
+        bitField0_ |= 0x00001000;
+        ccCatId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional uint32 cc_cat_id = 13;</code>
+       */
+      public Builder clearCcCatId() {
+        bitField0_ = (bitField0_ & ~0x00001000);
+        ccCatId_ = 0;
+        onChanged();
+        return this;
+      }
+
+      // optional uint32 cc_rep_score = 14;
+      private int ccRepScore_ ;
+      /**
+       * <code>optional uint32 cc_rep_score = 14;</code>
+       */
+      public boolean hasCcRepScore() {
+        return ((bitField0_ & 0x00002000) == 0x00002000);
+      }
+      /**
+       * <code>optional uint32 cc_rep_score = 14;</code>
+       */
+      public int getCcRepScore() {
+        return ccRepScore_;
+      }
+      /**
+       * <code>optional uint32 cc_rep_score = 14;</code>
+       */
+      public Builder setCcRepScore(int value) {
+        bitField0_ |= 0x00002000;
+        ccRepScore_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional uint32 cc_rep_score = 14;</code>
+       */
+      public Builder clearCcRepScore() {
+        bitField0_ = (bitField0_ & ~0x00002000);
+        ccRepScore_ = 0;
+        onChanged();
+        return this;
+      }
+
+      // optional string cc_url_prefix = 15;
+      private java.lang.Object ccUrlPrefix_ = "";
+      /**
+       * <code>optional string cc_url_prefix = 15;</code>
+       */
+      public boolean hasCcUrlPrefix() {
+        return ((bitField0_ & 0x00004000) == 0x00004000);
+      }
+      /**
+       * <code>optional string cc_url_prefix = 15;</code>
+       */
+      public java.lang.String getCcUrlPrefix() {
+        java.lang.Object ref = ccUrlPrefix_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          ccUrlPrefix_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string cc_url_prefix = 15;</code>
+       */
+      public com.google.protobuf.ByteString
+          getCcUrlPrefixBytes() {
+        java.lang.Object ref = ccUrlPrefix_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ccUrlPrefix_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string cc_url_prefix = 15;</code>
+       */
+      public Builder setCcUrlPrefix(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00004000;
+        ccUrlPrefix_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string cc_url_prefix = 15;</code>
+       */
+      public Builder clearCcUrlPrefix() {
+        bitField0_ = (bitField0_ & ~0x00004000);
+        ccUrlPrefix_ = getDefaultInstance().getCcUrlPrefix();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string cc_url_prefix = 15;</code>
+       */
+      public Builder setCcUrlPrefixBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00004000;
+        ccUrlPrefix_ = value;
         onChanged();
         return this;
       }
@@ -13637,6 +14290,16 @@ public final class AleMsg {
      */
     com.google.protobuf.ByteString
         getUnitsBytes();
+
+    // optional float grid_size = 11;
+    /**
+     * <code>optional float grid_size = 11;</code>
+     */
+    boolean hasGridSize();
+    /**
+     * <code>optional float grid_size = 11;</code>
+     */
+    float getGridSize();
   }
   /**
    * Protobuf type {@code ce.nbapi.floor}
@@ -13737,6 +14400,11 @@ public final class AleMsg {
             case 82: {
               bitField0_ |= 0x00000200;
               units_ = input.readBytes();
+              break;
+            }
+            case 93: {
+              bitField0_ |= 0x00000400;
+              gridSize_ = input.readFloat();
               break;
             }
           }
@@ -14036,6 +14704,22 @@ public final class AleMsg {
       }
     }
 
+    // optional float grid_size = 11;
+    public static final int GRID_SIZE_FIELD_NUMBER = 11;
+    private float gridSize_;
+    /**
+     * <code>optional float grid_size = 11;</code>
+     */
+    public boolean hasGridSize() {
+      return ((bitField0_ & 0x00000400) == 0x00000400);
+    }
+    /**
+     * <code>optional float grid_size = 11;</code>
+     */
+    public float getGridSize() {
+      return gridSize_;
+    }
+
     private void initFields() {
       floorId_ = com.google.protobuf.ByteString.EMPTY;
       floorName_ = "";
@@ -14047,6 +14731,7 @@ public final class AleMsg {
       buildingId_ = com.google.protobuf.ByteString.EMPTY;
       floorLevel_ = 0F;
       units_ = "";
+      gridSize_ = 0F;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -14089,6 +14774,9 @@ public final class AleMsg {
       }
       if (((bitField0_ & 0x00000200) == 0x00000200)) {
         output.writeBytes(10, getUnitsBytes());
+      }
+      if (((bitField0_ & 0x00000400) == 0x00000400)) {
+        output.writeFloat(11, gridSize_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -14138,6 +14826,10 @@ public final class AleMsg {
       if (((bitField0_ & 0x00000200) == 0x00000200)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(10, getUnitsBytes());
+      }
+      if (((bitField0_ & 0x00000400) == 0x00000400)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeFloatSize(11, gridSize_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -14275,6 +14967,8 @@ public final class AleMsg {
         bitField0_ = (bitField0_ & ~0x00000100);
         units_ = "";
         bitField0_ = (bitField0_ & ~0x00000200);
+        gridSize_ = 0F;
+        bitField0_ = (bitField0_ & ~0x00000400);
         return this;
       }
 
@@ -14343,6 +15037,10 @@ public final class AleMsg {
           to_bitField0_ |= 0x00000200;
         }
         result.units_ = units_;
+        if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
+          to_bitField0_ |= 0x00000400;
+        }
+        result.gridSize_ = gridSize_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -14394,6 +15092,9 @@ public final class AleMsg {
           bitField0_ |= 0x00000200;
           units_ = other.units_;
           onChanged();
+        }
+        if (other.hasGridSize()) {
+          setGridSize(other.getGridSize());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -14909,6 +15610,39 @@ public final class AleMsg {
   }
   bitField0_ |= 0x00000200;
         units_ = value;
+        onChanged();
+        return this;
+      }
+
+      // optional float grid_size = 11;
+      private float gridSize_ ;
+      /**
+       * <code>optional float grid_size = 11;</code>
+       */
+      public boolean hasGridSize() {
+        return ((bitField0_ & 0x00000400) == 0x00000400);
+      }
+      /**
+       * <code>optional float grid_size = 11;</code>
+       */
+      public float getGridSize() {
+        return gridSize_;
+      }
+      /**
+       * <code>optional float grid_size = 11;</code>
+       */
+      public Builder setGridSize(float value) {
+        bitField0_ |= 0x00000400;
+        gridSize_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional float grid_size = 11;</code>
+       */
+      public Builder clearGridSize() {
+        bitField0_ = (bitField0_ & ~0x00000400);
+        gridSize_ = 0F;
         onChanged();
         return this;
       }
@@ -37477,167 +38211,172 @@ public final class AleMsg {
       "family\022\014\n\004addr\030\002 \002(\014\"R\n\013addr_family\022\026\n\022A" +
       "DDR_FAMILY_UNSPEC\020\000\022\024\n\020ADDR_FAMILY_INET\020" +
       "\002\022\025\n\021ADDR_FAMILY_INET6\020\n\"\033\n\013mac_address\022" +
-      "\014\n\004addr\030\001 \002(\014\"\373\001\n\010location\022*\n\013sta_eth_ma" +
+      "\014\n\004addr\030\001 \002(\014\"\366\002\n\010location\022*\n\013sta_eth_ma" +
       "c\030\001 \001(\0132\025.ce.nbapi.mac_address\022\026\n\016sta_lo" +
       "cation_x\030\002 \001(\002\022\026\n\016sta_location_y\030\003 \001(\002\022\023" +
       "\n\013error_level\030\007 \001(\r\022\022\n\nassociated\030\010 \001(\010\022" +
       "\021\n\tcampus_id\030\t \001(\014\022\023\n\013building_id\030\n \001(\014\022",
       "\020\n\010floor_id\030\013 \001(\014\022\032\n\022hashed_sta_eth_mac\030" +
-      "\014 \001(\014\022\024\n\014geofence_ids\030\r \003(\014\"f\n\010presence\022" +
-      "*\n\013sta_eth_mac\030\001 \001(\0132\025.ce.nbapi.mac_addr" +
-      "ess\022\022\n\nassociated\030\002 \001(\010\022\032\n\022hashed_sta_et" +
-      "h_mac\030\003 \001(\014\"\236\001\n\004rssi\022*\n\013sta_eth_mac\030\001 \001(" +
-      "\0132\025.ce.nbapi.mac_address\022(\n\tradio_mac\030\002 " +
-      "\001(\0132\025.ce.nbapi.mac_address\022\020\n\010rssi_val\030\003" +
-      " \001(\r\022\022\n\nassociated\030\004 \001(\010\022\032\n\022hashed_sta_e" +
-      "th_mac\030\005 \001(\014\"\371\001\n\007station\022*\n\013sta_eth_mac\030" +
-      "\001 \001(\0132\025.ce.nbapi.mac_address\022\020\n\010username",
-      "\030\002 \001(\t\022\014\n\004role\030\003 \001(\t\022$\n\005bssid\030\004 \001(\0132\025.ce" +
-      ".nbapi.mac_address\022\023\n\013device_type\030\005 \001(\t\022" +
-      ",\n\016sta_ip_address\030\006 \001(\0132\024.ce.nbapi.ip_ad" +
-      "dress\022\032\n\022hashed_sta_eth_mac\030\007 \001(\014\022\035\n\025has" +
-      "hed_sta_ip_address\030\010 \001(\014\"\241\002\n\014access_poin" +
-      "t\022)\n\nap_eth_mac\030\001 \001(\0132\025.ce.nbapi.mac_add" +
-      "ress\022\017\n\007ap_name\030\002 \001(\t\022\020\n\010ap_group\030\003 \001(\t\022" +
-      "\020\n\010ap_model\030\004 \001(\t\0229\n\tdepl_mode\030\005 \001(\0162&.c" +
-      "e.nbapi.access_point.deployment_mode\022+\n\r" +
-      "ap_ip_address\030\006 \001(\0132\024.ce.nbapi.ip_addres",
-      "s\"I\n\017deployment_mode\022\032\n\026DEPLOYMENT_MODE_" +
-      "CAMPUS\020\000\022\032\n\026DEPLOYMENT_MODE_REMOTE\020\001\"\322\004\n" +
-      "\005radio\022)\n\nap_eth_mac\030\001 \001(\0132\025.ce.nbapi.ma" +
-      "c_address\022*\n\013radio_bssid\030\002 \001(\0132\025.ce.nbap" +
-      "i.mac_address\0220\n\010phy_type\030\003 \001(\0162\036.ce.nba" +
-      "pi.radio.radio_phy_type\022(\n\004mode\030\004 \001(\0162\032." +
-      "ce.nbapi.radio.radio_mode\"\200\002\n\016radio_phy_" +
-      "type\022\024\n\020RADIO_PHY_TYPE_A\020\000\022\027\n\023RADIO_PHY_" +
-      "TYPE_A_HT\020\001\022\032\n\026RADIO_PHY_TYPE_A_HT_40\020\002\022" +
-      "\026\n\022RADIO_PHY_TYPE_B_G\020\003\022\031\n\025RADIO_PHY_TYP",
-      "E_B_G_HT\020\004\022\034\n\030RADIO_PHY_TYPE_B_G_HT_40\020\005" +
-      "\022\030\n\024RADIO_PHY_TYPE_AC_HT\020\006\022\033\n\027RADIO_PHY_" +
-      "TYPE_AC_HT_40\020\007\022\033\n\027RADIO_PHY_TYPE_AC_HT_" +
-      "80\020\010\"\222\001\n\nradio_mode\022\021\n\rRADIO_MODE_AP\020\000\022\032" +
-      "\n\026RADIO_MODE_MESH_PORTAL\020\001\022\031\n\025RADIO_MODE" +
-      "_MESH_POINT\020\002\022\032\n\026RADIO_MODE_AIR_MONITOR\020" +
-      "\003\022\036\n\032RADIO_MODE_SPECTRUM_SENSOR\020\004\"v\n\024vir" +
-      "tual_access_point\022$\n\005bssid\030\001 \001(\0132\025.ce.nb" +
-      "api.mac_address\022\014\n\004ssid\030\002 \001(\t\022*\n\013radio_b" +
-      "ssid\030\003 \001(\0132\025.ce.nbapi.mac_address\"`\n\013des",
-      "tination\022%\n\007dest_ip\030\001 \001(\0132\024.ce.nbapi.ip_" +
-      "address\022\021\n\tdest_name\030\002 \001(\t\022\027\n\017dest_alias" +
-      "_name\030\003 \001(\t\"/\n\013application\022\016\n\006app_id\030\001 \001" +
-      "(\r\022\020\n\010app_name\030\002 \001(\t\"\236\003\n\016visibility_rec\022" +
-      "\'\n\tclient_ip\030\001 \001(\0132\024.ce.nbapi.ip_address" +
-      "\022%\n\007dest_ip\030\002 \001(\0132\024.ce.nbapi.ip_address\022" +
-      "6\n\010ip_proto\030\003 \001(\0162$.ce.nbapi.visibility_" +
-      "rec.ip_protocol\022\016\n\006app_id\030\004 \001(\r\022\017\n\007tx_pk" +
-      "ts\030\005 \001(\004\022\020\n\010tx_bytes\030\006 \001(\004\022\017\n\007rx_pkts\030\007 " +
-      "\001(\004\022\020\n\010rx_bytes\030\010 \001(\004\022\030\n\020hashed_client_i",
-      "p\030\t \001(\014\022)\n\ndevice_mac\030\n \001(\0132\025.ce.nbapi.m" +
-      "ac_address\022\031\n\021hashed_device_mac\030\013 \001(\014\022\020\n" +
-      "\010app_name\030\014 \001(\t\"<\n\013ip_protocol\022\025\n\021IP_PRO" +
+      "\014 \001(\014\022\024\n\014geofence_ids\030\r \003(\014\0223\n\rloc_algor" +
+      "ithm\030\016 \001(\0162\034.ce.nbapi.location.algorithm" +
+      "\"D\n\talgorithm\022\033\n\027ALGORITHM_TRIANGULATION" +
+      "\020\000\022\032\n\026ALGORITHM_AP_PLACEMENT\020\001\"f\n\010presen" +
+      "ce\022*\n\013sta_eth_mac\030\001 \001(\0132\025.ce.nbapi.mac_a" +
+      "ddress\022\022\n\nassociated\030\002 \001(\010\022\032\n\022hashed_sta" +
+      "_eth_mac\030\003 \001(\014\"\236\001\n\004rssi\022*\n\013sta_eth_mac\030\001" +
+      " \001(\0132\025.ce.nbapi.mac_address\022(\n\tradio_mac" +
+      "\030\002 \001(\0132\025.ce.nbapi.mac_address\022\020\n\010rssi_va",
+      "l\030\003 \001(\r\022\022\n\nassociated\030\004 \001(\010\022\032\n\022hashed_st" +
+      "a_eth_mac\030\005 \001(\014\"\371\001\n\007station\022*\n\013sta_eth_m" +
+      "ac\030\001 \001(\0132\025.ce.nbapi.mac_address\022\020\n\010usern" +
+      "ame\030\002 \001(\t\022\014\n\004role\030\003 \001(\t\022$\n\005bssid\030\004 \001(\0132\025" +
+      ".ce.nbapi.mac_address\022\023\n\013device_type\030\005 \001" +
+      "(\t\022,\n\016sta_ip_address\030\006 \001(\0132\024.ce.nbapi.ip" +
+      "_address\022\032\n\022hashed_sta_eth_mac\030\007 \001(\014\022\035\n\025" +
+      "hashed_sta_ip_address\030\010 \001(\014\"\241\002\n\014access_p" +
+      "oint\022)\n\nap_eth_mac\030\001 \001(\0132\025.ce.nbapi.mac_" +
+      "address\022\017\n\007ap_name\030\002 \001(\t\022\020\n\010ap_group\030\003 \001",
+      "(\t\022\020\n\010ap_model\030\004 \001(\t\0229\n\tdepl_mode\030\005 \001(\0162" +
+      "&.ce.nbapi.access_point.deployment_mode\022" +
+      "+\n\rap_ip_address\030\006 \001(\0132\024.ce.nbapi.ip_add" +
+      "ress\"I\n\017deployment_mode\022\032\n\026DEPLOYMENT_MO" +
+      "DE_CAMPUS\020\000\022\032\n\026DEPLOYMENT_MODE_REMOTE\020\001\"" +
+      "\267\004\n\005radio\022)\n\nap_eth_mac\030\001 \001(\0132\025.ce.nbapi" +
+      ".mac_address\022*\n\013radio_bssid\030\002 \001(\0132\025.ce.n" +
+      "bapi.mac_address\022(\n\004mode\030\004 \001(\0162\032.ce.nbap" +
+      "i.radio.radio_mode\022%\n\003phy\030\005 \001(\0162\030.ce.nba" +
+      "pi.radio.phy_type\022#\n\002ht\030\006 \001(\0162\027.ce.nbapi",
+      ".radio.ht_type\"\252\001\n\nradio_mode\022\021\n\rRADIO_M" +
+      "ODE_AP\020\000\022\032\n\026RADIO_MODE_MESH_PORTAL\020\001\022\031\n\025" +
+      "RADIO_MODE_MESH_POINT\020\002\022\032\n\026RADIO_MODE_AI" +
+      "R_MONITOR\020\003\022\036\n\032RADIO_MODE_SPECTRUM_SENSO" +
+      "R\020\004\022\026\n\022RADIO_MODE_UNKNOWN\020\005\"I\n\010phy_type\022" +
+      "\023\n\017PHY_TYPE_80211B\020\000\022\023\n\017PHY_TYPE_80211A\020" +
+      "\001\022\023\n\017PHY_TYPE_80211G\020\002\"i\n\007ht_type\022\014\n\010HTT" +
+      "_NONE\020\000\022\014\n\010HTT_20MZ\020\001\022\014\n\010HTT_40MZ\020\002\022\020\n\014H" +
+      "TT_VHT_20MZ\020\003\022\020\n\014HTT_VHT_40MZ\020\004\022\020\n\014HTT_V" +
+      "HT_80MZ\020\005\"v\n\024virtual_access_point\022$\n\005bss",
+      "id\030\001 \001(\0132\025.ce.nbapi.mac_address\022\014\n\004ssid\030" +
+      "\002 \001(\t\022*\n\013radio_bssid\030\003 \001(\0132\025.ce.nbapi.ma" +
+      "c_address\"`\n\013destination\022%\n\007dest_ip\030\001 \001(" +
+      "\0132\024.ce.nbapi.ip_address\022\021\n\tdest_name\030\002 \001" +
+      "(\t\022\027\n\017dest_alias_name\030\003 \001(\t\"/\n\013applicati" +
+      "on\022\016\n\006app_id\030\001 \001(\r\022\020\n\010app_name\030\002 \001(\t\"\336\003\n" +
+      "\016visibility_rec\022\'\n\tclient_ip\030\001 \001(\0132\024.ce." +
+      "nbapi.ip_address\022%\n\007dest_ip\030\002 \001(\0132\024.ce.n" +
+      "bapi.ip_address\0226\n\010ip_proto\030\003 \001(\0162$.ce.n" +
+      "bapi.visibility_rec.ip_protocol\022\016\n\006app_i",
+      "d\030\004 \001(\r\022\017\n\007tx_pkts\030\005 \001(\004\022\020\n\010tx_bytes\030\006 \001" +
+      "(\004\022\017\n\007rx_pkts\030\007 \001(\004\022\020\n\010rx_bytes\030\010 \001(\004\022\030\n" +
+      "\020hashed_client_ip\030\t \001(\014\022)\n\ndevice_mac\030\n " +
+      "\001(\0132\025.ce.nbapi.mac_address\022\031\n\021hashed_dev" +
+      "ice_mac\030\013 \001(\014\022\020\n\010app_name\030\014 \001(\t\022\021\n\tcc_ca" +
+      "t_id\030\r \001(\r\022\024\n\014cc_rep_score\030\016 \001(\r\022\025\n\rcc_u" +
+      "rl_prefix\030\017 \001(\t\"<\n\013ip_protocol\022\025\n\021IP_PRO" +
       "TOCOL_VAL_6\020\006\022\026\n\022IP_PROTOCOL_VAL_17\020\021\"0\n" +
       "\006campus\022\021\n\tcampus_id\030\001 \001(\014\022\023\n\013campus_nam" +
-      "e\030\002 \001(\t\"I\n\010building\022\023\n\013building_id\030\001 \001(\014" +
+      "e\030\002 \001(\t\"I\n\010building\022\023\n\013building_id\030\001 \001(\014",
       "\022\025\n\rbuilding_name\030\002 \001(\t\022\021\n\tcampus_id\030\003 \001" +
-      "(\014\"\342\001\n\005floor\022\020\n\010floor_id\030\001 \001(\014\022\022\n\nfloor_" +
+      "(\014\"\365\001\n\005floor\022\020\n\010floor_id\030\001 \001(\014\022\022\n\nfloor_" +
       "name\030\002 \001(\t\022\026\n\016floor_latitude\030\003 \001(\002\022\027\n\017fl" +
-      "oor_longitude\030\004 \001(\002\022\026\n\016floor_img_path\030\005 ",
+      "oor_longitude\030\004 \001(\002\022\026\n\016floor_img_path\030\005 " +
       "\001(\t\022\027\n\017floor_img_width\030\006 \001(\002\022\030\n\020floor_im" +
       "g_length\030\007 \001(\002\022\023\n\013building_id\030\010 \001(\014\022\023\n\013f" +
-      "loor_level\030\t \001(\002\022\r\n\005units\030\n \001(\t\"\035\n\005point" +
-      "\022\t\n\001x\030\001 \001(\002\022\t\n\001y\030\002 \001(\002\"{\n\010geofence\022\020\n\010fl" +
-      "oor_id\030\001 \001(\014\022\023\n\013geofence_id\030\002 \001(\014\022\025\n\rgeo" +
-      "fence_name\030\003 \001(\t\022\014\n\004type\030\004 \001(\t\022#\n\npoint_" +
-      "list\030\005 \003(\0132\017.ce.nbapi.point\"\343\003\n\017geofence" +
-      "_notify\022<\n\016geofence_event\030\001 \001(\0162$.ce.nba" +
-      "pi.geofence_notify.zone_event\022\023\n\013geofenc" +
-      "e_id\030\002 \001(\014\022\025\n\rgeofence_name\030\003 \001(\t\022&\n\007sta",
-      "_mac\030\004 \001(\0132\025.ce.nbapi.mac_address\022\022\n\nass" +
-      "ociated\030\005 \001(\010\022\025\n\ndwell_time\030\006 \001(\r:\0010\022F\n\021" +
-      "access_point_info\030\007 \003(\n2+.ce.nbapi.geofe" +
-      "nce_notify.Access_point_info\022\026\n\016hashed_s" +
-      "ta_mac\030\036 \001(\014\032\211\001\n\021Access_point_info\022%\n\006ap" +
-      "_mac\030\010 \001(\0132\025.ce.nbapi.mac_address\022\017\n\007ap_" +
-      "name\030\t \001(\t\022*\n\013radio_bssid\030\n \001(\0132\025.ce.nba" +
-      "pi.mac_address\022\020\n\010rssi_val\030\013 \001(\r\"\'\n\nzone" +
-      "_event\022\013\n\007ZONE_IN\020\000\022\014\n\010ZONE_OUT\020\001\"\341\010\n\010nb" +
-      "_event\022\013\n\003seq\030\001 \001(\004\022\021\n\ttimestamp\030\002 \001(\r\022.",
-      "\n\002op\030\003 \001(\0162\".ce.nbapi.nb_event.event_ope" +
-      "ration\022\021\n\ttopic_seq\030\004 \001(\004\022\021\n\tsource_id\030\005" +
-      " \001(\014\022:\n\010lic_info\030\006 \001(\0162\037.ce.nbapi.nb_eve" +
-      "nt.license_info:\007hb_Dhak\022%\n\010location\030\364\003 " +
-      "\001(\0132\022.ce.nbapi.location\022%\n\010presence\030\365\003 \001" +
-      "(\0132\022.ce.nbapi.presence\022\035\n\004rssi\030\366\003 \001(\0132\016." +
-      "ce.nbapi.rssi\022#\n\007station\030\367\003 \001(\0132\021.ce.nba" +
-      "pi.station\022\037\n\005radio\030\371\003 \001(\0132\017.ce.nbapi.ra" +
-      "dio\022+\n\013destination\030\373\003 \001(\0132\025.ce.nbapi.des" +
-      "tination\022+\n\013application\030\375\003 \001(\0132\025.ce.nbap",
-      "i.application\0221\n\016visibility_rec\030\376\003 \001(\0132\030" +
-      ".ce.nbapi.visibility_rec\022!\n\006campus\030\377\003 \001(" +
-      "\0132\020.ce.nbapi.campus\022%\n\010building\030\200\004 \001(\0132\022" +
-      ".ce.nbapi.building\022\037\n\005floor\030\201\004 \001(\0132\017.ce." +
-      "nbapi.floor\022-\n\014access_point\030\202\004 \001(\0132\026.ce." +
-      "nbapi.access_point\022=\n\024virtual_access_poi" +
-      "nt\030\203\004 \001(\0132\036.ce.nbapi.virtual_access_poin" +
-      "t\022%\n\010geofence\030\204\004 \001(\0132\022.ce.nbapi.geofence" +
-      "\0223\n\017geofence_notify\030\205\004 \001(\0132\031.ce.nbapi.ge" +
-      "ofence_notify\";\n\017event_operation\022\n\n\006OP_A",
-      "DD\020\000\022\r\n\tOP_UPDATE\020\001\022\r\n\tOP_DELETE\020\002\"\360\001\n\014l" +
-      "icense_info\022\013\n\007hb_Dhak\020\n\022\016\n\nhb_LimitOk\020\013" +
-      "\022\027\n\023hb_ThresholdXNotice\020\024\022\030\n\024hb_Threshol" +
-      "dOkNotice\020\025\022\026\n\022hb_LicenseExceeded\020\037\022\022\n\016h" +
-      "b_EvalStarted\020)\022\027\n\023hb_NewLimitExceeded\0203" +
-      "\022\017\n\013hb_EvalDone\020=\022\020\n\014hb_ALSOnline\020G\022\020\n\014h" +
-      "b_ALSDieing\020Q\022\026\n\022hb_LICENSE_BLOCKED\020[\"\374\016" +
-      "\n\016query_response\022A\n\017location_result\030\n \003(" +
-      "\n2(.ce.nbapi.query_response.Location_res" +
-      "ult\022A\n\017presence_result\030\024 \003(\n2(.ce.nbapi.",
-      "query_response.Presence_result\0229\n\013rssi_r" +
-      "esult\030\036 \003(\n2$.ce.nbapi.query_response.Rs" +
-      "si_result\022?\n\016station_result\030( \003(\n2\'.ce.n" +
-      "bapi.query_response.Station_result\022;\n\014ra" +
-      "dio_result\0302 \003(\n2%.ce.nbapi.query_respon" +
-      "se.Radio_result\022G\n\022destination_result\030< " +
-      "\003(\n2+.ce.nbapi.query_response.Destinatio" +
-      "n_result\022G\n\022application_result\030F \003(\n2+.c" +
-      "e.nbapi.query_response.Application_resul" +
-      "t\022M\n\025visibility_rec_result\030P \003(\n2..ce.nb",
-      "api.query_response.Visibility_rec_result" +
-      "\022=\n\rcampus_result\030Z \003(\n2&.ce.nbapi.query" +
-      "_response.Campus_result\022A\n\017building_resu" +
-      "lt\030d \003(\n2(.ce.nbapi.query_response.Build" +
-      "ing_result\022;\n\014floor_result\030n \003(\n2%.ce.nb" +
-      "api.query_response.Floor_result\022I\n\023acces" +
-      "s_point_result\030x \003(\n2,.ce.nbapi.query_re" +
-      "sponse.Access_point_result\022Z\n\033virtual_ac" +
-      "cess_point_result\030\202\001 \003(\n24.ce.nbapi.quer" +
-      "y_response.Virtual_access_point_result\022B",
-      "\n\017geofence_result\030\214\001 \003(\n2(.ce.nbapi.quer" +
-      "y_response.Geofence_result\032>\n\017Location_r" +
-      "esult\022\037\n\003msg\030\013 \002(\0132\022.ce.nbapi.location\022\n" +
-      "\n\002ts\030\014 \001(\r\032>\n\017Presence_result\022\037\n\003msg\030\025 \002" +
-      "(\0132\022.ce.nbapi.presence\022\n\n\002ts\030\026 \001(\r\0326\n\013Rs" +
-      "si_result\022\033\n\003msg\030\037 \002(\0132\016.ce.nbapi.rssi\022\n" +
-      "\n\002ts\030  \001(\r\032<\n\016Station_result\022\036\n\003msg\030) \002(" +
-      "\0132\021.ce.nbapi.station\022\n\n\002ts\030* \001(\r\0328\n\014Radi" +
-      "o_result\022\034\n\003msg\0303 \002(\0132\017.ce.nbapi.radio\022\n" +
-      "\n\002ts\0304 \001(\r\032D\n\022Destination_result\022\"\n\003msg\030",
-      "= \002(\0132\025.ce.nbapi.destination\022\n\n\002ts\030> \001(\r" +
-      "\032D\n\022Application_result\022\"\n\003msg\030G \002(\0132\025.ce" +
-      ".nbapi.application\022\n\n\002ts\030H \001(\r\032J\n\025Visibi" +
-      "lity_rec_result\022%\n\003msg\030Q \002(\0132\030.ce.nbapi." +
-      "visibility_rec\022\n\n\002ts\030R \001(\r\032:\n\rCampus_res" +
-      "ult\022\035\n\003msg\030[ \002(\0132\020.ce.nbapi.campus\022\n\n\002ts" +
-      "\030\\ \001(\r\032>\n\017Building_result\022\037\n\003msg\030e \002(\0132\022" +
-      ".ce.nbapi.building\022\n\n\002ts\030f \001(\r\0328\n\014Floor_" +
-      "result\022\034\n\003msg\030o \002(\0132\017.ce.nbapi.floor\022\n\n\002" +
-      "ts\030p \001(\r\032F\n\023Access_point_result\022#\n\003msg\030y",
-      " \002(\0132\026.ce.nbapi.access_point\022\n\n\002ts\030z \001(\r" +
-      "\032X\n\033Virtual_access_point_result\022,\n\003msg\030\203" +
-      "\001 \002(\0132\036.ce.nbapi.virtual_access_point\022\013\n" +
-      "\002ts\030\204\001 \001(\r\032@\n\017Geofence_result\022 \n\003msg\030\215\001 " +
-      "\002(\0132\022.ce.nbapi.geofence\022\013\n\002ts\030\216\001 \001(\rB#\n!" +
-      "com.arubanetworks.aledemonstrator"
+      "loor_level\030\t \001(\002\022\r\n\005units\030\n \001(\t\022\021\n\tgrid_" +
+      "size\030\013 \001(\002\"\035\n\005point\022\t\n\001x\030\001 \001(\002\022\t\n\001y\030\002 \001(" +
+      "\002\"{\n\010geofence\022\020\n\010floor_id\030\001 \001(\014\022\023\n\013geofe" +
+      "nce_id\030\002 \001(\014\022\025\n\rgeofence_name\030\003 \001(\t\022\014\n\004t",
+      "ype\030\004 \001(\t\022#\n\npoint_list\030\005 \003(\0132\017.ce.nbapi" +
+      ".point\"\343\003\n\017geofence_notify\022<\n\016geofence_e" +
+      "vent\030\001 \001(\0162$.ce.nbapi.geofence_notify.zo" +
+      "ne_event\022\023\n\013geofence_id\030\002 \001(\014\022\025\n\rgeofenc" +
+      "e_name\030\003 \001(\t\022&\n\007sta_mac\030\004 \001(\0132\025.ce.nbapi" +
+      ".mac_address\022\022\n\nassociated\030\005 \001(\010\022\025\n\ndwel" +
+      "l_time\030\006 \001(\r:\0010\022F\n\021access_point_info\030\007 \003" +
+      "(\n2+.ce.nbapi.geofence_notify.Access_poi" +
+      "nt_info\022\026\n\016hashed_sta_mac\030\036 \001(\014\032\211\001\n\021Acce" +
+      "ss_point_info\022%\n\006ap_mac\030\010 \001(\0132\025.ce.nbapi",
+      ".mac_address\022\017\n\007ap_name\030\t \001(\t\022*\n\013radio_b" +
+      "ssid\030\n \001(\0132\025.ce.nbapi.mac_address\022\020\n\010rss" +
+      "i_val\030\013 \001(\r\"\'\n\nzone_event\022\013\n\007ZONE_IN\020\000\022\014" +
+      "\n\010ZONE_OUT\020\001\"\341\010\n\010nb_event\022\013\n\003seq\030\001 \001(\004\022\021" +
+      "\n\ttimestamp\030\002 \001(\r\022.\n\002op\030\003 \001(\0162\".ce.nbapi" +
+      ".nb_event.event_operation\022\021\n\ttopic_seq\030\004" +
+      " \001(\004\022\021\n\tsource_id\030\005 \001(\014\022:\n\010lic_info\030\006 \001(" +
+      "\0162\037.ce.nbapi.nb_event.license_info:\007hb_D" +
+      "hak\022%\n\010location\030\364\003 \001(\0132\022.ce.nbapi.locati" +
+      "on\022%\n\010presence\030\365\003 \001(\0132\022.ce.nbapi.presenc",
+      "e\022\035\n\004rssi\030\366\003 \001(\0132\016.ce.nbapi.rssi\022#\n\007stat" +
+      "ion\030\367\003 \001(\0132\021.ce.nbapi.station\022\037\n\005radio\030\371" +
+      "\003 \001(\0132\017.ce.nbapi.radio\022+\n\013destination\030\373\003" +
+      " \001(\0132\025.ce.nbapi.destination\022+\n\013applicati" +
+      "on\030\375\003 \001(\0132\025.ce.nbapi.application\0221\n\016visi" +
+      "bility_rec\030\376\003 \001(\0132\030.ce.nbapi.visibility_" +
+      "rec\022!\n\006campus\030\377\003 \001(\0132\020.ce.nbapi.campus\022%" +
+      "\n\010building\030\200\004 \001(\0132\022.ce.nbapi.building\022\037\n" +
+      "\005floor\030\201\004 \001(\0132\017.ce.nbapi.floor\022-\n\014access" +
+      "_point\030\202\004 \001(\0132\026.ce.nbapi.access_point\022=\n",
+      "\024virtual_access_point\030\203\004 \001(\0132\036.ce.nbapi." +
+      "virtual_access_point\022%\n\010geofence\030\204\004 \001(\0132" +
+      "\022.ce.nbapi.geofence\0223\n\017geofence_notify\030\205" +
+      "\004 \001(\0132\031.ce.nbapi.geofence_notify\";\n\017even" +
+      "t_operation\022\n\n\006OP_ADD\020\000\022\r\n\tOP_UPDATE\020\001\022\r" +
+      "\n\tOP_DELETE\020\002\"\360\001\n\014license_info\022\013\n\007hb_Dha" +
+      "k\020\n\022\016\n\nhb_LimitOk\020\013\022\027\n\023hb_ThresholdXNoti" +
+      "ce\020\024\022\030\n\024hb_ThresholdOkNotice\020\025\022\026\n\022hb_Lic" +
+      "enseExceeded\020\037\022\022\n\016hb_EvalStarted\020)\022\027\n\023hb" +
+      "_NewLimitExceeded\0203\022\017\n\013hb_EvalDone\020=\022\020\n\014",
+      "hb_ALSOnline\020G\022\020\n\014hb_ALSDieing\020Q\022\026\n\022hb_L" +
+      "ICENSE_BLOCKED\020[\"\374\016\n\016query_response\022A\n\017l" +
+      "ocation_result\030\n \003(\n2(.ce.nbapi.query_re" +
+      "sponse.Location_result\022A\n\017presence_resul" +
+      "t\030\024 \003(\n2(.ce.nbapi.query_response.Presen" +
+      "ce_result\0229\n\013rssi_result\030\036 \003(\n2$.ce.nbap" +
+      "i.query_response.Rssi_result\022?\n\016station_" +
+      "result\030( \003(\n2\'.ce.nbapi.query_response.S" +
+      "tation_result\022;\n\014radio_result\0302 \003(\n2%.ce" +
+      ".nbapi.query_response.Radio_result\022G\n\022de",
+      "stination_result\030< \003(\n2+.ce.nbapi.query_" +
+      "response.Destination_result\022G\n\022applicati" +
+      "on_result\030F \003(\n2+.ce.nbapi.query_respons" +
+      "e.Application_result\022M\n\025visibility_rec_r" +
+      "esult\030P \003(\n2..ce.nbapi.query_response.Vi" +
+      "sibility_rec_result\022=\n\rcampus_result\030Z \003" +
+      "(\n2&.ce.nbapi.query_response.Campus_resu" +
+      "lt\022A\n\017building_result\030d \003(\n2(.ce.nbapi.q" +
+      "uery_response.Building_result\022;\n\014floor_r" +
+      "esult\030n \003(\n2%.ce.nbapi.query_response.Fl",
+      "oor_result\022I\n\023access_point_result\030x \003(\n2" +
+      ",.ce.nbapi.query_response.Access_point_r" +
+      "esult\022Z\n\033virtual_access_point_result\030\202\001 " +
+      "\003(\n24.ce.nbapi.query_response.Virtual_ac" +
+      "cess_point_result\022B\n\017geofence_result\030\214\001 " +
+      "\003(\n2(.ce.nbapi.query_response.Geofence_r" +
+      "esult\032>\n\017Location_result\022\037\n\003msg\030\013 \002(\0132\022." +
+      "ce.nbapi.location\022\n\n\002ts\030\014 \001(\r\032>\n\017Presenc" +
+      "e_result\022\037\n\003msg\030\025 \002(\0132\022.ce.nbapi.presenc" +
+      "e\022\n\n\002ts\030\026 \001(\r\0326\n\013Rssi_result\022\033\n\003msg\030\037 \002(",
+      "\0132\016.ce.nbapi.rssi\022\n\n\002ts\030  \001(\r\032<\n\016Station" +
+      "_result\022\036\n\003msg\030) \002(\0132\021.ce.nbapi.station\022" +
+      "\n\n\002ts\030* \001(\r\0328\n\014Radio_result\022\034\n\003msg\0303 \002(\013" +
+      "2\017.ce.nbapi.radio\022\n\n\002ts\0304 \001(\r\032D\n\022Destina" +
+      "tion_result\022\"\n\003msg\030= \002(\0132\025.ce.nbapi.dest" +
+      "ination\022\n\n\002ts\030> \001(\r\032D\n\022Application_resul" +
+      "t\022\"\n\003msg\030G \002(\0132\025.ce.nbapi.application\022\n\n" +
+      "\002ts\030H \001(\r\032J\n\025Visibility_rec_result\022%\n\003ms" +
+      "g\030Q \002(\0132\030.ce.nbapi.visibility_rec\022\n\n\002ts\030" +
+      "R \001(\r\032:\n\rCampus_result\022\035\n\003msg\030[ \002(\0132\020.ce",
+      ".nbapi.campus\022\n\n\002ts\030\\ \001(\r\032>\n\017Building_re" +
+      "sult\022\037\n\003msg\030e \002(\0132\022.ce.nbapi.building\022\n\n" +
+      "\002ts\030f \001(\r\0328\n\014Floor_result\022\034\n\003msg\030o \002(\0132\017" +
+      ".ce.nbapi.floor\022\n\n\002ts\030p \001(\r\032F\n\023Access_po" +
+      "int_result\022#\n\003msg\030y \002(\0132\026.ce.nbapi.acces" +
+      "s_point\022\n\n\002ts\030z \001(\r\032X\n\033Virtual_access_po" +
+      "int_result\022,\n\003msg\030\203\001 \002(\0132\036.ce.nbapi.virt" +
+      "ual_access_point\022\013\n\002ts\030\204\001 \001(\r\032@\n\017Geofenc" +
+      "e_result\022 \n\003msg\030\215\001 \002(\0132\022.ce.nbapi.geofen" +
+      "ce\022\013\n\002ts\030\216\001 \001(\rB#\n!com.arubanetworks.ale",
+      "demonstrator"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -37661,7 +38400,7 @@ public final class AleMsg {
           internal_static_ce_nbapi_location_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_ce_nbapi_location_descriptor,
-              new java.lang.String[] { "StaEthMac", "StaLocationX", "StaLocationY", "ErrorLevel", "Associated", "CampusId", "BuildingId", "FloorId", "HashedStaEthMac", "GeofenceIds", });
+              new java.lang.String[] { "StaEthMac", "StaLocationX", "StaLocationY", "ErrorLevel", "Associated", "CampusId", "BuildingId", "FloorId", "HashedStaEthMac", "GeofenceIds", "LocAlgorithm", });
           internal_static_ce_nbapi_presence_descriptor =
             getDescriptor().getMessageTypes().get(3);
           internal_static_ce_nbapi_presence_fieldAccessorTable = new
@@ -37691,7 +38430,7 @@ public final class AleMsg {
           internal_static_ce_nbapi_radio_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_ce_nbapi_radio_descriptor,
-              new java.lang.String[] { "ApEthMac", "RadioBssid", "PhyType", "Mode", });
+              new java.lang.String[] { "ApEthMac", "RadioBssid", "Mode", "Phy", "Ht", });
           internal_static_ce_nbapi_virtual_access_point_descriptor =
             getDescriptor().getMessageTypes().get(8);
           internal_static_ce_nbapi_virtual_access_point_fieldAccessorTable = new
@@ -37715,7 +38454,7 @@ public final class AleMsg {
           internal_static_ce_nbapi_visibility_rec_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_ce_nbapi_visibility_rec_descriptor,
-              new java.lang.String[] { "ClientIp", "DestIp", "IpProto", "AppId", "TxPkts", "TxBytes", "RxPkts", "RxBytes", "HashedClientIp", "DeviceMac", "HashedDeviceMac", "AppName", });
+              new java.lang.String[] { "ClientIp", "DestIp", "IpProto", "AppId", "TxPkts", "TxBytes", "RxPkts", "RxBytes", "HashedClientIp", "DeviceMac", "HashedDeviceMac", "AppName", "CcCatId", "CcRepScore", "CcUrlPrefix", });
           internal_static_ce_nbapi_campus_descriptor =
             getDescriptor().getMessageTypes().get(12);
           internal_static_ce_nbapi_campus_fieldAccessorTable = new
@@ -37733,7 +38472,7 @@ public final class AleMsg {
           internal_static_ce_nbapi_floor_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_ce_nbapi_floor_descriptor,
-              new java.lang.String[] { "FloorId", "FloorName", "FloorLatitude", "FloorLongitude", "FloorImgPath", "FloorImgWidth", "FloorImgLength", "BuildingId", "FloorLevel", "Units", });
+              new java.lang.String[] { "FloorId", "FloorName", "FloorLatitude", "FloorLongitude", "FloorImgPath", "FloorImgWidth", "FloorImgLength", "BuildingId", "FloorLevel", "Units", "GridSize", });
           internal_static_ce_nbapi_point_descriptor =
             getDescriptor().getMessageTypes().get(15);
           internal_static_ce_nbapi_point_fieldAccessorTable = new

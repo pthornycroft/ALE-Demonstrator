@@ -9,15 +9,13 @@ import java.net.URL;
 import org.json.JSONObject;
 
 import android.os.AsyncTask;
-import android.os.Build;
-import android.os.Bundle;
 import android.util.Log;
 
 public class PostFingerprintAsyncTask extends AsyncTask < SurveyObject, String, SurveyObject> {
 	String TAG = "PostFingerprintAsyncTask";
 	HttpURLConnection connection;
 	int TIMEOUT_VALUE = 60000;
-	String urlString = ":8080/api/v1/survey/fingerprint";
+	String urlString = "/api/v1/survey/fingerprint";
 	
 	protected SurveyObject doInBackground(SurveyObject... params) {
 		SurveyObject result = new SurveyObject(params[0].pho, params[0].action, false);
@@ -25,11 +23,12 @@ public class PostFingerprintAsyncTask extends AsyncTask < SurveyObject, String, 
 		JSONObject jsonObject = JsonBuilders.formFingerprintJsonObject( pho.ethAddr, pho.timestamp.getTime(), pho.floorId, pho.touchX, 
     			pho.touchY, pho.units, pho.deviceMfg, pho.deviceModel, pho.compassDegrees, pho.iBeaconJsonArray);
 		char[] payload = jsonObject.toString().toCharArray();
-		if(params[0].action == "delete") { urlString = ":8080/api/v1/survey/delete"; }
+		if(params[0].action == "delete") { urlString = ":"+MainActivity.alePort+"/api/v1/survey/delete"; }
+		
 		try {
-			
+
 			try {
-				URL url = new URL("http://" + MainActivity.aleHost + urlString);
+				URL url = new URL("http://" + MainActivity.aleHost +":" + MainActivity.alePort + urlString);
 				Log.i(TAG, "posting fingerprint to "+url.toString());
 				Log.i(TAG, "posting this JSON "+params[0]);				
 				connection = (HttpURLConnection) url.openConnection();
@@ -66,13 +65,15 @@ public class PostFingerprintAsyncTask extends AsyncTask < SurveyObject, String, 
 	public void onPreExecute(){
 		Log.i(TAG, "PostFingerprintAsyncTask starting");
 		MainActivity.postFingerprintAsyncTaskInProgress = true;
+		MainActivity.surveyConfirmButton.startAnimation(MainActivity.animAlpha);
 	}
 	
 	public void onPostExecute(SurveyObject result){
 		Log.i(TAG, "PostFingerprintAsyncTask finished with "+result.success);
 		MainActivity.postFingerprintAsyncTaskInProgress = false;
-		if(result.action.equals("add") && result.success == true) { MainActivity.addSurveyPointToList(result.pho, result.success); }
-		if(result.action.equals("delete") && result.success == true) { MainActivity.deleteSurveyPointFromList(result.pho, result.success); }
+		if(result.action.equals("add")) { MainActivity.addSurveyPointToList(result.pho, result.success); }
+		else if(result.action.equals("delete")) { MainActivity.deleteSurveyPointFromList(result.pho, result.success); }
+		MainActivity.surveyConfirmButton.clearAnimation();
 	}	
 	
 	private boolean parseFingerprintPostResponse(String in) {

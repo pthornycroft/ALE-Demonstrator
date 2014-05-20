@@ -12,7 +12,6 @@ public class ProtobufParsers {
 
 	public static void parseAleMessage(byte[] inp){			
 		try {
-			//AleMsg.event event = AleMsg.event.parseFrom(inp);
 			AleMsg.nb_event event = AleMsg.nb_event.parseFrom(inp);
 			if(event.hasLocation()){ 
 				parseAleLocation(event.getLocation()); 
@@ -65,16 +64,11 @@ public class ProtobufParsers {
 			campusId = location.getCampusId().toStringUtf8();
 			sta_eth_mac = LookupTables.byteStringToStringForMac(location.getStaEthMac().getAddr());
 			hashed_sta_eth_mac = LookupTables.byteStringToHexString(location.getHashedStaEthMac());
-			//Log.v(TAG, "parseAleLocationApi staEthMac "+staEthMac+" hashMac  "+hashed_sta_eth_mac+" my hash "+MainActivity.myHashMac+" xy "+sta_location_x+" "+sta_location_y+" floorId "+floorId);
-			//if(MainActivity.myMac.equals("")) MainActivity.myMac = staEthMac;
 			if(hashed_sta_eth_mac.equals("") && sta_eth_mac != null) { hashed_sta_eth_mac = sta_eth_mac; }
 			if(hashed_sta_eth_mac.equalsIgnoreCase(MainActivity.myHashMac)) { 					
 				Log.i(TAG, "That was ours "+hashed_sta_eth_mac+"  x_"+sta_location_x+"  y_"+sta_location_y+" site "+floorId); 
-//				MainActivity.sbLog.append("\n" + DateFormat.getDateTimeInstance().format(new Date()) + "    New ALE reading for my MAC\n" +
-//						"ALE x,y "+sta_location_x+", "+sta_location_y);
 				MainActivity.site_xAle = sta_location_x;
 				MainActivity.site_yAle = sta_location_y; 
-//				MainActivity.floorIdAle = floorId;
 				PositionHistoryObject newObject = new PositionHistoryObject(new Date(), 0, 0, sta_location_x, sta_location_y, -99, false, error, 
 						floorId, buildingId, campusId, sta_eth_mac, hashed_sta_eth_mac, "ft", "XX", "XX", 0, null);
 				MainActivity.alePositionHistoryList.add(0, newObject);
@@ -87,8 +81,9 @@ public class ProtobufParsers {
 			//Log.i(TAG, "new positionHistoryObject showAllMacs eth _"+sta_eth_mac+"_ hash _"+hashed_sta_eth_mac+"_  x_"+sta_location_x+"  y_"+sta_location_y+" site "+floorId);
 			if(MainActivity.aleAllPositionHistoryMap.containsKey(hashed_sta_eth_mac) && !floorId.equals("not found") &&
 					MainActivity.floorListIndex != -1 && floorId.equals(MainActivity.floorList.get(MainActivity.floorListIndex).floor_id)){
-				if(MainActivity.aleAllPositionHistoryMap.get(hashed_sta_eth_mac).size() > 100) { 
-					Log.w(TAG, "position history array was over 500 "+hashed_sta_eth_mac);
+				if(MainActivity.aleAllPositionHistoryMap.get(hashed_sta_eth_mac).size() > 20) {  ///
+					//Log.w(TAG, "position history array was over 20 "+hashed_sta_eth_mac+"  tracking "+MainActivity.eventLogMap.size()+" targets for events"); ///
+					MainActivity.aleAllPositionHistoryMap.get(hashed_sta_eth_mac).remove(1);
 					MainActivity.aleAllPositionHistoryMap.get(hashed_sta_eth_mac).remove(0); 
 				}
 				MainActivity.aleAllPositionHistoryMap.get(hashed_sta_eth_mac).add(newObject);
@@ -103,7 +98,8 @@ public class ProtobufParsers {
 			
 		} catch (Exception e) { 
 			Log.e(TAG, "Exception parsing Location protobuf event "+e);
-			MainActivity.zmqStatusString = "could not parse zmq location "+e;
+			if(e.toString().contains("size is 0")) { MainActivity.zmqStatusString = "floor list is empty"; } // this is the case where there's no floor list, array out of bounds
+			else { MainActivity.zmqStatusString = "could not parse zmq location "+e; }
 		} 
 	}
 	
@@ -323,10 +319,13 @@ public class ProtobufParsers {
 		MainActivity.eventLogMap.get(hashed_sta_eth_mac).add(0, datestamp+"  :  "+event);
 
 		// trim the list if it's more than 500 entries
-		if(MainActivity.eventLogMap.get(hashed_sta_eth_mac).size() > 100) {
-			MainActivity.eventLogMap.get(hashed_sta_eth_mac).remove(MainActivity.eventLogMap.get(hashed_sta_eth_mac).size()-1);
-			MainActivity.eventLogMap.get(hashed_sta_eth_mac).remove(MainActivity.eventLogMap.get(hashed_sta_eth_mac).size()-2);
-
+		if(MainActivity.eventLogMap.get(hashed_sta_eth_mac).size() > 20) {
+			//Log.w(TAG, "event log array was over 20 "+hashed_sta_eth_mac+"  tracking "+MainActivity.eventLogMap.size()+" targets for events"); ///
+//			MainActivity.eventLogMap.get(hashed_sta_eth_mac).remove(MainActivity.eventLogMap.get(hashed_sta_eth_mac).size()-1);
+//			MainActivity.eventLogMap.get(hashed_sta_eth_mac).remove(MainActivity.eventLogMap.get(hashed_sta_eth_mac).size()-2);
+			MainActivity.eventLogMap.get(hashed_sta_eth_mac).remove(1);
+			MainActivity.eventLogMap.get(hashed_sta_eth_mac).remove(0);
+			
 		}
 	}
 	

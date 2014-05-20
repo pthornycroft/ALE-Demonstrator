@@ -33,11 +33,10 @@ public class FloorPlanView extends View {
 	final Paint myAlePaint = new Paint();
 	final Paint myGridPaint = new Paint();
 	final Paint myMapPaint = new Paint();
+	final Paint myHairlinePaint = new Paint();
 	
 	float site_xAle = 0;;
 	float site_yAle = 0;
-//  HashMap<String, ArrayList<PositionHistoryObject>> aleAllPositionHistoryMap = new HashMap<String, ArrayList<PositionHistoryObject>>(500);
-//	ArrayList<PositionHistoryObject> alePositionHistoryList = new ArrayList<PositionHistoryObject>();
 	boolean showHistory;
 	boolean showAllMacs;
 	boolean showLabels;
@@ -113,6 +112,10 @@ public class FloorPlanView extends View {
 			myGridPaint.setColor(Color.LTGRAY);
 			myGridPaint.setStyle(Paint.Style.STROKE);
 			myGridPaint.setStrokeWidth(1);
+			
+			myHairlinePaint.setColor(Color.RED);
+			myHairlinePaint.setStyle(Paint.Style.STROKE);
+			myHairlinePaint.setStrokeWidth(3);
 		
 			//Size the bitmap and build a rectangle to put it in, on the canvas
 			float frameScaleFloat = scaleBitmap(canvas.getWidth(), canvas.getHeight(), thisFloorPlan.getWidth(), thisFloorPlan.getHeight());
@@ -123,14 +126,6 @@ public class FloorPlanView extends View {
 			canvas.drawBitmap(thisFloorPlan, null, frameRect, null);
 			//scaleFactor = (float) (rectHeightInt/MainActivity.siteHeight);
 			scaleFactor = (float) (rectHeightInt/thisFloor.floor_img_length);
-			
-			// if we are in survey fingerprint mode, put up the gridlines and update the central x,y coordinates
-			if(!MainActivity.trackMode){
-				canvas.drawLine((viewWidth/mScaleFactor)/2-originX, -originY, (viewWidth/mScaleFactor)/2-originX, (viewHeight/mScaleFactor)-originY, myAlePaint);
-				canvas.drawLine(-originX, (viewHeight/mScaleFactor)/2-originY, (viewWidth/mScaleFactor)-originX, (viewHeight/mScaleFactor/2)-originY, myAlePaint);
-				MainActivity.surveyPointX = (-originX+(viewWidth/mScaleFactor/2))/scaleFactor;
-				MainActivity.surveyPointY = (-originY+(viewHeight/mScaleFactor/2))/scaleFactor;
-			}
 			
 			// if we have a grid size, draw a grid superimposed and put a legend at upper left
 			if(MainActivity.trackMode == false && thisFloor.grid_size > 0){
@@ -143,17 +138,39 @@ public class FloorPlanView extends View {
 				canvas.drawText("grid "+thisFloor.grid_size+" "+thisFloor.units, 20, -10, myAlePaint);
 			}
 			
-			// if we have a fingerprint map, print it as a colour overlay
+			// if we have a fingerprint map, print it as a colour overlay with a bit of transparency
 			if(MainActivity.trackMode == false && thisFloor.grid_size > 0 && thisFloor.fingerprintMapList != null && thisFloor.fingerprintMapList.size() > 0){
 				for (int i=0; i<thisFloor.fingerprintMapList.size(); i++){
-					if(thisFloor.fingerprintMapList.get(i).satisfactory){
+					int col = thisFloor.fingerprintMapList.get(i).satisfactory;
+					if(col > 0){
+						if(col > 4) { myMacPaint.setColor(Color.GREEN); }
+						else if (col > 2) { myMacPaint.setColor(Color.YELLOW); }
+						else if (col > 0) { myMacPaint.setColor(Color.RED); }
+						myMacPaint.setAlpha(100);
 						float x = thisFloor.fingerprintMapList.get(i).locationX - (thisFloor.fingerprintMapList.get(i).locationX % thisFloor.grid_size);
 						float y = thisFloor.fingerprintMapList.get(i).locationY - (thisFloor.fingerprintMapList.get(i).locationY % thisFloor.grid_size);
-						Log.v(TAG, "grid corrections "+thisFloor.grid_size+"  "+thisFloor.fingerprintMapList.get(i).locationX+" "+x+"  "+thisFloor.fingerprintMapList.get(i).locationY+"  "+y);
-						myMacPaint.setARGB(100, 153, 255, 153);
+						Log.v(TAG, "grid survey point "+thisFloor.grid_size+"  "+thisFloor.fingerprintMapList.get(i).locationX+" "+x+"  "+thisFloor.fingerprintMapList.get(i).locationY+"  "+y);
+						//myMacPaint.setARGB(100, 153, 255, 153);
 						canvas.drawRect(x *scaleFactor, y * scaleFactor, (x+thisFloor.grid_size) * scaleFactor, (y+thisFloor.grid_size) * scaleFactor, myMacPaint);
 					}
 				}
+				myMacPaint.setColor(Color.BLUE);
+				//myMacPaint.setAlpha(255);
+			}
+			
+			// paint the MAC address just off the floorplan
+			if (MainActivity.trackMode && MainActivity.myMac != null) {
+				canvas.drawText("MAC "+MainActivity.myMac, 20, -10, myAlePaint);
+			}
+			
+			// if we are in survey fingerprint mode, put up the gridlines and update the central x,y coordinates
+			if(!MainActivity.trackMode){
+				canvas.drawLine((viewWidth/mScaleFactor)/2-originX, -originY, (viewWidth/mScaleFactor)/2-originX, (viewHeight/mScaleFactor)-originY, myHairlinePaint);
+				canvas.drawLine(-originX, (viewHeight/mScaleFactor)/2-originY, (viewWidth/mScaleFactor)-originX, (viewHeight/mScaleFactor/2)-originY, myHairlinePaint);
+				MainActivity.surveyPointX = (-originX+(viewWidth/mScaleFactor/2))/scaleFactor;
+				MainActivity.surveyPointY = (-originY+(viewHeight/mScaleFactor/2))/scaleFactor;
+				//canvas.drawRect((viewWidth/mScaleFactor)/2-originX-1, -originY, (viewWidth/mScaleFactor)/2-originX+1, (viewHeight/mScaleFactor)-originY, myAlePaint);
+				//canvas.drawLine(-originX, (viewHeight/mScaleFactor)/2-originY-1, (viewWidth/mScaleFactor)-originX, (viewHeight/mScaleFactor/2)-originY+1, myAlePaint);
 			}
 			
 			// Draw position and historical track of ALL ALE Positions if item enabled

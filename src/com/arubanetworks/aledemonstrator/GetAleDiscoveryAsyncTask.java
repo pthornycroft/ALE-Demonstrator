@@ -10,34 +10,35 @@ import java.util.ArrayList;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class AleDiscoveryAsyncTask extends AsyncTask <String, Integer, ArrayList[]> {
-	String TAG = "AleDiscoveryAsyncTask";
+public class GetAleDiscoveryAsyncTask extends AsyncTask <String, Integer, ArrayList[]> {
+	String TAG = "GetAleDiscoveryAsyncTask";
 	int TIMEOUT_VALUE = 20000;
 	
 	protected ArrayList[] doInBackground(String... params) {
 		
 		// query for campuses
 		ArrayList<AleCampus> campusList = JsonParsers.parseAleJsonCampus(readStreamString(runLookup("/api/v1/campus.json")));
-		Log.v(TAG, "1");
+		Log.v(TAG, "finished campus lookup");
 		// query for buildings
 		ArrayList<AleBuilding> buildingList = JsonParsers.parseAleJsonBuilding(readStreamString(runLookup("/api/v1/building.json")));
-		Log.v(TAG, "2");
+		Log.v(TAG, "finished building lookup");
 		// query for floors
 		ArrayList<AleFloor> floorList = JsonParsers.parseAleJsonFloor(readStreamString(runLookup("/api/v1/floor.json")));
-		Log.v(TAG, "3");
+		Log.v(TAG, "finished floor lookup");
 		
 		ArrayList[] result = {campusList, buildingList, floorList};
 		return result;
 	}
 	
 	public void onPreExecute(){
-		Log.i(TAG, "aleDiscoveryAsyncTask starting");
+		Log.i(TAG, "getAleDiscoveryAsyncTask starting");
 		MainActivity.aleDiscoveryAsyncTaskInProgress = true;
 		MainActivity.httpStatusString1 = "Discovering campus, building, floor data";
+		MainActivity.httpStatusString2 = "";
 	}
 	
 	public void onPostExecute(ArrayList[] result){
-		Log.i(TAG, "aleDiscoveryAsyncTask finished");
+		Log.i(TAG, "getAleDiscoveryAsyncTask finished");
 		MainActivity.aleDiscoveryAsyncTaskInProgress = false;
 		MainActivity.campusList = result[0];
 		MainActivity.buildingList = result[1];
@@ -54,7 +55,7 @@ public class AleDiscoveryAsyncTask extends AsyncTask <String, Integer, ArrayList
 	private InputStream runLookup(String args){
 		InputStream result = null;
 		try{
-			URL url = new URL("http://"+MainActivity.aleHost+":8080"+args);
+			URL url = new URL("http://"+MainActivity.aleHost+":"+MainActivity.alePort+args);
 			Log.v(TAG, "URL get protocol "+url.getProtocol()+" host "+url.getHost()+" port "+url.getPort()+" file "+url.getFile());
 			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 			connection.setConnectTimeout(TIMEOUT_VALUE);
@@ -68,8 +69,16 @@ public class AleDiscoveryAsyncTask extends AsyncTask <String, Integer, ArrayList
 			} */
 	
 			result = connection.getInputStream();
+			if(connection.getResponseCode() != 200) { MainActivity.httpStatusString2 = connection.getResponseMessage(); }
 			Log.v(TAG, "AleDiscovery http result code was "+connection.getResponseCode()+"  response message "+connection.getResponseMessage());	
-		} catch (Exception e) { Log.e(TAG, "Exception getting location AleDiscovery "+e); }
+		} catch (java.net.ConnectException e) { 
+			Log.e(TAG, "connect exception "+e); 
+			MainActivity.httpStatusString2 = e.getMessage();
+		} catch (java.net.SocketTimeoutException e) {
+			Log.e(TAG, "socket timeout exception "+e); 
+			MainActivity.httpStatusString2 = e.getMessage();
+		}
+		catch (Exception e) { Log.e(TAG, "Exception getting location AleDiscovery "+e); }
 	return result;
 	}
 	

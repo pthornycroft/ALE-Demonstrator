@@ -15,8 +15,8 @@ import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
 
-public class FindMyLocationAsyncTask extends AsyncTask < String, String, String> {
-	String TAG = "FindMyLocationAsyncTask";
+public class GetMyLocationAsyncTask extends AsyncTask < String, String, String> {
+	String TAG = "GetMyLocationAsyncTask";
 	int TIMEOUT_VALUE = 10000;
 	
 	protected String doInBackground(String... params) {
@@ -28,7 +28,7 @@ public class FindMyLocationAsyncTask extends AsyncTask < String, String, String>
 	}
 	
 	public void onPreExecute(){
-		Log.i(TAG, "FindMyLocationAsyncTask starting");
+		Log.i(TAG, "GetMyLocationAsyncTask starting");
 		MainActivity.findMyLocationAsyncTaskInProgress = true;
 		if(MainActivity.floorList != null){
 			MainActivity.httpStatusString1 = MainActivity.floorList.size()+" floors.  Discovering my floor";
@@ -36,7 +36,7 @@ public class FindMyLocationAsyncTask extends AsyncTask < String, String, String>
 	}
 	
 	public void onPostExecute(String result){
-		Log.i(TAG, "FindMyLocationAsyncTask finished with _"+result+"_");
+		Log.i(TAG, "GetMyLocationAsyncTask finished with _"+result+"_");
 		MainActivity.findMyLocationAsyncTaskInProgress = false;
 	}
 	
@@ -45,7 +45,7 @@ public class FindMyLocationAsyncTask extends AsyncTask < String, String, String>
 	private InputStream runLookup(String args){
 		InputStream result = null;
 		try{
-			URL url = new URL("http://"+MainActivity.aleHost+":8080"+args);
+			URL url = new URL("http://"+MainActivity.aleHost+":"+MainActivity.alePort+args);
 			Log.v(TAG, "URL get protocol "+url.getProtocol()+" host "+url.getHost()+" port "+url.getPort()+" file "+url.getFile());
 			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 			connection.setConnectTimeout(TIMEOUT_VALUE);

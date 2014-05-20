@@ -19,10 +19,13 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -48,16 +51,16 @@ public class MainActivity extends Activity {
 	TextView scanningEnabledTextView;
 	TextView aleUsernameTextView;
 	TextView alePasswordTextView;
-	Button selectFloorButton;
+	static Button selectFloorButton;
 	TextView statusText01;
 	TextView statusText02;
 	static Button pickTargetButton;
 	Button trackHistoryButton;
 	Button surveyButton;
-	Button surveyConfirmButton;
+	static Button surveyConfirmButton;
 	FloorPlanView floorPlanView;
 	
-	String selectFloorButtonText = "select a floor to track";
+	static String selectFloorButtonText = "select a floor to track";
 	static String pickTargetButtonText = "showing all";
 	
 	static Context context;
@@ -67,6 +70,7 @@ public class MainActivity extends Activity {
 	static ArrayList<AleFloor> floorList;
 	static int floorListIndex = -1;
 	
+	static boolean zmqEnabled = true;
 	private volatile ZMQSubscriber zmqSubscriber;
 //	ZMQSubscriber2 zmqSubscriber;
 	static Handler zmqHandler;
@@ -81,6 +85,8 @@ public class MainActivity extends Activity {
 	static long zmqMissedSeq = 0;
 	
 	static String aleHost = "10.4.250.13";
+	static String alePort = "8080";
+	static String floorplanDownloadPort = "80";
 	static float site_xAle = 0;
 	static float site_yAle = 0;
 	static Bitmap floorPlan;
@@ -100,7 +106,7 @@ public class MainActivity extends Activity {
 	BluetoothManager bluetoothManager;
 	static BluetoothAdapter bluetoothAdapter;
 	private Handler bluetoothScanIntervalHandler = new Handler();
-	private int SCAN_INTERVAL = 10000;
+	private int SCAN_INTERVAL = 60000;
 	private Handler bluetoothScanDurationHandler = new Handler();
 	private int SCAN_DURATION = 1000;
 	static final int REQUEST_ENABLE_BT = 1;
@@ -109,11 +115,12 @@ public class MainActivity extends Activity {
     static int iBeaconsTotal = 0;
     static int iBeaconsUnique = 0;
 	
-	AleDiscoveryAsyncTask aleDiscoveryAsyncTask;
+	GetAleDiscoveryAsyncTask getAleDiscoveryAsyncTask;
 	static boolean aleDiscoveryAsyncTaskInProgress = false;	
-	static boolean downloadFloorplanAsyncTaskInProgress = false;	
+	static boolean getFloorplanAsyncTaskInProgress = false;	
 	static boolean findMyLocationAsyncTaskInProgress = false;
 	static boolean getFingerprintMapAsyncTaskInProgress = false;
+	static boolean sendChunkedDataAsyncTaskInProgress = false;
 	
 	Handler handler = new Handler();
 	int counter = 0;
@@ -141,6 +148,8 @@ public class MainActivity extends Activity {
 	static HashMap<String, ArrayList<String>> eventLogMap = new HashMap<String, ArrayList<String>>(500);
 	// this is a list of position history objects for a single target, holding site survey results
 	static ArrayList<PositionHistoryObject> surveyHistoryList = new ArrayList<PositionHistoryObject>();
+	
+	static Animation animAlpha;
 
 	WifiManager wifiManager;
 	static boolean scanningEnabled = false;
@@ -156,32 +165,42 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		context = this;
 		setContentView(R.layout.activity_main);
-		setViewsAndListeners();		
+		setViewsAndListeners();	
+		setViewText();
+		
+		animAlpha = AnimationUtils.loadAnimation(this,  R.anim.anim_alpha);
 		
 		readSharedPreferences();
-		initialize();   	
+		initialiseZmqAndOthers();   	
 		
-		bluetoothEnabled = initializeBluetooth();
+		bluetoothEnabled = initialiseBluetooth();
 		
 	}
     
   
     Runnable runnable = new Runnable(){
     	public void run(){
-    		initializeConfigViews();
+    		
+    		/// testing 
+/*    		if(counter%10 == 2 && sendChunkedDataAsyncTaskInProgress == false) {
+    			PostChunkedDataAsyncTask postChunkedDataAsyncTask = new PostChunkedDataAsyncTask();
+    			postChunkedDataAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    		}   		
+*/    		
+    		initialiseConfigViews();
     		statusText01.setText("HTTP STATUS\n"+httpStatusString1+"\n"+httpStatusString2);
     		statusText02.setText("ZMQ STATUS\n"+zmqStatusString);
     		
             if(counter%10 == 1 && (floorList == null || floorList.size() < 1) && aleDiscoveryAsyncTaskInProgress == false) {
-            	AleDiscoveryAsyncTask aleDiscoveryAsyncTask = new AleDiscoveryAsyncTask();
-            	aleDiscoveryAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            	GetAleDiscoveryAsyncTask getAleDiscoveryAsyncTask = new GetAleDiscoveryAsyncTask();
+            	getAleDiscoveryAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
            
 	        if(counter%30 == 3 && myHashMac == null && findMyLocationAsyncTaskInProgress == false) {
-	        	FindMyLocationAsyncTask findMyLocationAsyncTask = new FindMyLocationAsyncTask();
+	        	GetMyLocationAsyncTask getMyLocationAsyncTask = new GetMyLocationAsyncTask();
 	        	String[] params = {myMac, "true"};
 	        	//findMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, myMac);
-	        	findMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
+	        	getMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
 	        }
     		
             floorPlanView.invalidate();
@@ -194,32 +213,26 @@ public class MainActivity extends Activity {
     			alePositionHistoryList = new ArrayList<PositionHistoryObject>();
     			eventLogMap = new HashMap<String, ArrayList<String>>(500);
 
-        		try{
-        			zmqSubscriber = new ZMQSubscriber(zmqHandler, zmqFilter);
-//        			zmqSubscriber = new ZMQSubscriber2(zmqHandler, zmqFilter);
-        			zmqSubscriber.start();
-        			Log.v(TAG, "zmqSubscriber was null, restarting with host "+aleHost);
-        		} catch (Exception e) { Log.e(TAG, "Exception starting new thread for zmqSubscriber "+e); }
+    			if(zmqEnabled) {
+	        		try{
+	        			zmqSubscriber = new ZMQSubscriber(zmqHandler, zmqFilter);
+	//        			zmqSubscriber = new ZMQSubscriber2(zmqHandler, zmqFilter);
+	        			zmqSubscriber.start();
+	        			Log.v(TAG, "zmqSubscriber was null, restarting with host "+aleHost);
+	        		} catch (Exception e) { Log.e(TAG, "Exception starting new thread for zmqSubscriber "+e); }
+    			}
     		} 
         	
     		if(zmqMessageCounter > 0) { 
     			zmqStatusString = +zmqMessageCounter+" ZMQ messages, "+zmqMessagesForMyMac+" for my MAC "; 
     		}
     		
-    		if(counter%20 == 5 && scanningEnabled && wifiManager != null){
+    		if(counter%5 == 4 && scanningEnabled && wifiManager != null){
     			wifiManager.startScan();
+    			Log.d(TAG, "start scan");
     		}
     		
-    		if(counter % 6 == 3 && trackMode == false) {
-    	    	sensorMan.registerListener(sensorListener, sensorMan.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
-    		    sensorMan.registerListener(sensorListener, sensorMan.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL);
-    		    //Log.v(TAG, "sensors type all" + sensorMan.getSensorList(Sensor.TYPE_ALL));
-    		}
-    		if(counter % 6 == 4 && trackMode == false) {
-    			sensorMan.unregisterListener(sensorListener);
-    		}
-    		
-    		if(counter%60 == 7 && trackMode == false){
+    		if(counter%30 == 7 && trackMode == false){
     			getFingerprintMap();
     		}
     		
@@ -266,7 +279,8 @@ public class MainActivity extends Activity {
     		for(String s : keySet) {
     			//Log.v(TAG, "new message with key "+s);
     			byte[] messageBody = msg.getData().getByteArray(s);
-    			if(zmqMessageCounter%500 == 1) Log.v(TAG, "zmq message count "+zmqMessageCounter+" last message length "+messageBody.length);
+    			if(zmqMessageCounter%500 == 1) Log.v(TAG, "zmq message count "+zmqMessageCounter+
+    					" last message length "+messageBody.length+"  tracking "+aleAllPositionHistoryMap.size()+" devices");
     			ProtobufParsers.parseAleMessage(messageBody);
     		}
     	}
@@ -300,10 +314,10 @@ public class MainActivity extends Activity {
     			    			floorPlanView.initialize();
     			    			Log.v(TAG,"selected my floor but bad myFloorIndex "+myFloorIndex);
     			    	        if(findMyLocationAsyncTaskInProgress == false) {
-    			    	        	FindMyLocationAsyncTask findMyLocationAsyncTask = new FindMyLocationAsyncTask();
+    			    	        	GetMyLocationAsyncTask getMyLocationAsyncTask = new GetMyLocationAsyncTask();
     			    	        	String[] params = {myMac, "true"};
     			    	        	//findMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, myMac);
-    			    	        	findMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
+    			    	        	getMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
     			    	        }
     			    			return;
     			    		}
@@ -322,8 +336,8 @@ public class MainActivity extends Activity {
 				    		floorPlan = null;
 				    		floorPlanView.initialize();
 				    		Log.v(TAG, "url for floorplan "+floorList.get(i).floor_img_path);
-				    		DownloadFloorplanAsyncTask downloadFloorplanAsyncTask = new DownloadFloorplanAsyncTask();
-				    		downloadFloorplanAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, floorList.get(i).floor_img_path);
+				    		GetFloorplanAsyncTask getFloorplanAsyncTask = new GetFloorplanAsyncTask();
+				    		getFloorplanAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, floorList.get(i).floor_img_path);
     			    	}
     			    }
     			});
@@ -426,10 +440,10 @@ public class MainActivity extends Activity {
 						            	pickTargetButtonText = "showing "+targetMac;
 						            	pickTargetButton.setText(pickTargetButtonText);
 						    	        if(findMyLocationAsyncTaskInProgress == false) {
-						    	        	FindMyLocationAsyncTask findMyLocationAsyncTask = new FindMyLocationAsyncTask();
+						    	        	GetMyLocationAsyncTask getMyLocationAsyncTask = new GetMyLocationAsyncTask();
 						    	        	String[] params = {targetMac, "false"};
 						    	        	//findMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, targetHashMac);
-						    	        	findMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
+						    	        	getMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
 						    	        }
 						            }
 						            else { 
@@ -475,10 +489,19 @@ public class MainActivity extends Activity {
     			if(trackMode){
     				trackMode = false;
     				surveyButton.setText("in survey mode");
+    				try{
+    					sensorMan.registerListener(sensorListener, sensorMan.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+    					sensorMan.registerListener(sensorListener, sensorMan.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL);
+        	    	    Log.v(TAG, "sensor listener registered, sensors type all enabled " + sensorMan.getSensorList(Sensor.TYPE_ALL));
+    				} catch (Exception e) { Log.e(TAG, "Exception registering sensors "+e); }
     				getFingerprintMap();
     			} else {
     				trackMode = true;
     				surveyButton.setText("in track mode");
+    				try{
+    					sensorMan.unregisterListener(sensorListener);
+        	    		Log.v(TAG, "sensor listener unregistered");
+    				} catch (Exception e) { Log.e(TAG, "Exception unregistering sensors "+e); }
     			}
     		} 
     		if(v == surveyConfirmButton && trackMode == false) {
@@ -486,7 +509,6 @@ public class MainActivity extends Activity {
     			if(wifiManager != null) { wifiManager.startScan(); }  // sends probe requests that the APs will forward to ALE
     			if(floorList != null && floorList.size() > 0 && floorListIndex != -1) {  // don't attempt to send a fingerprint without a floor
     				addSurveyPointToAle();
-
     			}
     		}
     	}
@@ -495,8 +517,8 @@ public class MainActivity extends Activity {
     // when we get the response to the add survey point post, success or not, we take actions.  We only add the point to the history list if it was successful.
     public static void addSurveyPointToList(PositionHistoryObject pho, boolean success){
     	if(success == true) {
-			success = surveyHistoryList.add(pho);
-			if(success == true) {
+			boolean addIt = surveyHistoryList.add(pho);
+			if(addIt == true) {
 				Toast toast = Toast.makeText(context, ("add survey point success\n"+pho.touchX+"  "+pho.touchY), Toast.LENGTH_LONG);
 				toast.show();
 				return;
@@ -509,8 +531,8 @@ public class MainActivity extends Activity {
     // when we get the response to the delete survey point post, success or not, we take actions.  We only add the point to the history list if it was successful.
     public static void deleteSurveyPointFromList(PositionHistoryObject pho, boolean success){
     	if(success == true) {
-    		success = surveyHistoryList.remove(pho);
-    		if(success == true) { 
+    		boolean deleteIt = surveyHistoryList.remove(pho);
+    		if(deleteIt == true) { 
     			Toast toast = Toast.makeText(context, ("delete survey point success\n"+pho.touchX+"  "+pho.touchY), Toast.LENGTH_LONG);
     			toast.show();
     			return;
@@ -526,6 +548,12 @@ public class MainActivity extends Activity {
 			SurveyObject surveyObject = new SurveyObject(formSurveyPositionHistoryObject(), "add", false);
     		PostFingerprintAsyncTask postFingerprintAsyncTask = new PostFingerprintAsyncTask();
     		postFingerprintAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, surveyObject);
+    		
+    		if(sendChunkedDataAsyncTaskInProgress == false) {
+    			PostChunkedDataAsyncTask postChunkedDataAsyncTask = new PostChunkedDataAsyncTask();
+    			postChunkedDataAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    		}
+    			
 		}
     }
     
@@ -552,24 +580,24 @@ public class MainActivity extends Activity {
     private OnClickListener settingsOnClickListener = new OnClickListener(){
     	@Override
     	public void onClick(final View v) {
+    		
     		// builder1 shows all the settings in an alert dialog list with an OK button to exit
 			AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
 			builder1.setTitle("current settings");
 			String scanningEnabledString = "disabled";
 			if(scanningEnabled) { scanningEnabledString = "enabled"; }
-			final String[] titles = {"ALE host address  ", "ALE username  ", "ALE password  ", "Scanning "};
-			final String[] values = {aleHost, aleUsername, "*password*", scanningEnabledString, " "};
-			CharSequence[] targetList = {titles[0]+values[0], titles[1]+values[1], titles[2]+values[2], titles[3]+values[3]};
+			String enableZmqString = "disabled";
+			if(zmqEnabled) { enableZmqString = "enabled"; }
+			final String[] titles = {"ALE host address  ", "ALE port   ", "ALE username  ", "ALE password  ", "Scanning ", "Floorplan download port ", "ZMQ publish-subscribe ", "reset ALE Demonstrator (clear all data)"};
+			final String[] values = {aleHost, alePort, aleUsername, "*password*", scanningEnabledString, floorplanDownloadPort, enableZmqString, ""};
+			CharSequence[] targetList = {titles[0]+values[0], titles[1]+values[1], titles[2]+values[2], titles[3]+values[3], titles[4]+values[4], titles[5]+values[5], 
+					titles[6]+values[6], titles[7]+values[7]};
 			builder1.setPositiveButton("OK", new DialogInterface.OnClickListener(){
 				// this returns from the alert dialog to the main view.
 				@Override
 				public void onClick(DialogInterface dialog, final int which) {
-					Log.v(TAG, "saving dialog with aleHost "+aleHost);
+					Log.v(TAG, "saving dialog with aleHost "+aleHost+" : "+alePort);
 					saveSharedPreferences();
-					try{
-						zmqSubscriber.interrupt();
-						zmqSubscriber = null;
-					} catch (Exception e) { Log.e(TAG, "nulling zmqSubscriber "+e); }
 					return;
 				}
 			});
@@ -577,13 +605,13 @@ public class MainActivity extends Activity {
 				@Override
 				public void onClick(DialogInterface dialog, final int which) {			
 					// builder2 brings up an alert dialog for each setting depending on which was touched from the builder1 list
-					if(which != 3) {
+					if(which != 4 && which != 6 && which != 7) {
 						final AlertDialog.Builder builder2 = new AlertDialog.Builder(context);
 						final EditText input = new EditText(context);
 						// put the value from the list into this new alert dialog
 						if(values[which] != null) { input.setText(values[which]); }
 						// if it's the password we show an empty edittext
-						if(which == 2) { input.setText(null); }					
+						if(which == 3) { input.setText(null); }					
 						// now launch a separate dialog for whichever builder1 settings item was chosen and populate with the current setting
 						builder2.setView(input);
 						builder2.setTitle(titles[which]);
@@ -597,16 +625,28 @@ public class MainActivity extends Activity {
 					            	Log.v(TAG, "entered new "+titles[which]+"  _"+value.toString()+"_");
 					            	if(which == 0) {
 					            		aleHost = value.toString();
+										resetAllData();
+										setViewText();
+										initialiseConfigViews();
+										initialiseZmqAndOthers();
+										initialiseConfigViews();
+					            		Log.v(TAG, "new ALE Host, clearing floorList "+aleHost+" : "+alePort);
+					            	}
+					            	if(which == 1) {
+					            		alePort = value.toString();
 					            		floorList = null;
-					            		Log.v(TAG, "new ALE Host, clearing floorList "+aleHost);
+					            		myHashMac = null;
+					            		initialiseConfigViews();
+					            		Log.v(TAG, "new ALE Port, clearing floorList "+aleHost+" : "+alePort);
 					            	}
-					            	if(which == 1) aleUsername = value.toString();
-					            	if(which == 2) alePassword = value.toString();
-					            	if(which == 3) {
-					            		if(value.toString().equalsIgnoreCase("Scanning enabled")) { scanningEnabled = true; }
-					            		else { scanningEnabled = false; }
-					            	}
-					            	initializeConfigViews();
+					            	if(which == 2) aleUsername = value.toString();
+					            	if(which == 3) alePassword = value.toString();
+//					            	if(which == 4) {
+//					            		if(value.toString().equalsIgnoreCase("Scanning enabled")) { scanningEnabled = true; }
+//					            		else { scanningEnabled = false; }
+//					            	}
+					            	if(which == 5) floorplanDownloadPort = value.toString();
+					            	initialiseConfigViews();
 					            }
 					            else { Log.w(TAG, "entered new "+titles[which]+" but it was null"); }
 					            settingsOnClickListener.onClick(v);  // this brings back a fresh dialog with the _new_ settings values rather than a new dialog of the old settings
@@ -618,24 +658,24 @@ public class MainActivity extends Activity {
 						    WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
 						alertToShow.show();
 						//builder2.show();	
-					} else {
+					} else if (which == 4) {
 						final AlertDialog.Builder builder2 = new AlertDialog.Builder(context);
 						builder2.setTitle("enable background scanning");
 						builder2.setNegativeButton("NO", new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int whichButton) {		
-								// read the new value for the individual setting
+								// read the new value for background scanning
 								Log.v(TAG, "set scanning to false");
 								scanningEnabled = false;
-								initializeConfigViews();
+								initialiseConfigViews();
 								settingsOnClickListener.onClick(v);
 					        }
 						});
 						builder2.setPositiveButton("YES", new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int whichButton) {		
-								// read the new value for the individual setting
+								// read the new value for background scanning
 								Log.v(TAG, "set scanning to true");
 								scanningEnabled = true;
-								initializeConfigViews();
+								initialiseConfigViews();
 								settingsOnClickListener.onClick(v);
 					        }
 						});
@@ -644,7 +684,59 @@ public class MainActivity extends Activity {
 						alertToShow.getWindow().setSoftInputMode(
 						    WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
 						alertToShow.show();
-					}
+					}  else if (which == 6) {
+						final AlertDialog.Builder builder2 = new AlertDialog.Builder(context);
+						builder2.setTitle("enable ZMQ");
+						builder2.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int whichButton) {		
+								// read the new value for zmq
+								Log.v(TAG, "set ZMQ to false");
+								zmqEnabled = false;
+								initialiseZmqAndOthers();
+								initialiseConfigViews();
+								settingsOnClickListener.onClick(v);
+					        }
+						});
+						builder2.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int whichButton) {		
+								// read the new value for zmq
+								Log.v(TAG, "set ZMQ to true");
+								zmqEnabled = true;
+								initialiseZmqAndOthers();
+								initialiseConfigViews();
+								settingsOnClickListener.onClick(v);
+					        }
+						});
+						// this makes sure the keyboard is pulled up and the cursor placed in the settings alert dialog when it appears
+						AlertDialog alertToShow = builder2.create();
+						alertToShow.getWindow().setSoftInputMode(
+						    WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+						alertToShow.show();
+					} else if (which == 7) {
+						final AlertDialog.Builder builder2 = new AlertDialog.Builder(context);
+						builder2.setTitle("reset ALE Demonstrator");
+						builder2.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int whichButton) {		
+								// do nothing
+					        }
+						});
+						builder2.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int whichButton) {		
+								// reset all the dynamic data
+								Log.v(TAG, "set 'reset ALE Demonstrator' to true");
+								resetAllData();
+								setViewText();
+								initialiseZmqAndOthers();
+								initialiseConfigViews();
+								settingsOnClickListener.onClick(v);
+					        }
+						});
+						// this makes sure the keyboard is pulled up and the cursor placed in the settings alert dialog when it appears
+						AlertDialog alertToShow = builder2.create();
+						alertToShow.getWindow().setSoftInputMode(
+						    WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+						alertToShow.show();
+					} 
 				}
 			});
 			builder1.show();
@@ -693,17 +785,18 @@ public class MainActivity extends Activity {
     	return result;
     }
     
-    private boolean initializeBluetooth() {
+    private boolean initialiseBluetooth() {
     	// if the device doesn't support BLE then return false
     	boolean result = false;
 		if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) { 
 			Log.w(TAG, "this device is capable of bluetooth LE");
-			result = initializeBluetoothAdapter(); 
+			result = initialiseBluetoothAdapter(); 
 		}
 		return result;
     }
     
-	public boolean initializeBluetoothAdapter(){
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+	public boolean initialiseBluetoothAdapter(){
 	// now see if we can get the BLE adapter.  If not, return false
 		bluetoothManager = (BluetoothManager) MainActivity.context.getSystemService(Context.BLUETOOTH_SERVICE);
 		bluetoothAdapter = bluetoothManager.getAdapter();
@@ -768,7 +861,7 @@ public class MainActivity extends Activity {
 			bluetoothScanDurationHandler.postDelayed(new Runnable() {
 				@Override
 				public void run() {
-					Log.v(TAG, "bluetooth runnable stop leScan");
+					//Log.v(TAG, "bluetooth runnable stop leScan");
 					bluetoothAdapter.stopLeScan(bluetoothScanCallback);
 					if(MainActivity.bleBeaconResults != " "){
 						Log.i(TAG, "iBeacons "+MainActivity.bleBeaconResults);
@@ -781,7 +874,7 @@ public class MainActivity extends Activity {
 				}
 			}, SCAN_DURATION);
 	
-		Log.v(TAG, "bluetooth runnable start leScan");
+		//Log.v(TAG, "bluetooth runnable start leScan");
 		bluetoothAdapter.startLeScan(bluetoothScanCallback);
 		} else {
 			Log.w(TAG, "bluetooth scanLeDevice started with enable false "+enable);
@@ -809,7 +902,8 @@ public class MainActivity extends Activity {
     	Log.i(TAG, "reading shared preferences");
     	SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
     	aleHost = sharedPreferences.getString("hostAddress", aleHost);
-    	aleHostTextView.setText(aleHost);
+    	alePort = sharedPreferences.getString("hostPort", alePort);
+    	aleHostTextView.setText(aleHost+" port "+alePort);
     	aleUsername = sharedPreferences.getString("userid", aleUsername);
     	aleUsernameTextView.setText(aleUsername);
     	alePassword = sharedPreferences.getString("password", alePassword);
@@ -817,30 +911,37 @@ public class MainActivity extends Activity {
     	scanningEnabled = sharedPreferences.getBoolean("scanningEnabled", false);
     	if(scanningEnabled) { scanningEnabledTextView.setText("scanning enabled"); }
     	else { scanningEnabledTextView.setText("scanning disabled"); }
+    	floorplanDownloadPort = sharedPreferences.getString("floorplanDownloadPort", floorplanDownloadPort);
+    	zmqEnabled = sharedPreferences.getBoolean("zmqEnabled", zmqEnabled);
     }
     
     private void saveSharedPreferences(){
     	Log.i(TAG, "saving shared preferences");
     	SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
     	editor.putString("hostAddress", aleHost);
+    	editor.putString("hostPort", alePort);
     	editor.putString("userid", aleUsername);
     	editor.putString("password", alePassword);
     	editor.putBoolean("showHistory", showHistory);
     	editor.putBoolean("scanningEnabled", scanningEnabled);
+    	editor.putString("floorplanDownloadPort", floorplanDownloadPort);
+    	editor.putBoolean("zmqEnabled", zmqEnabled);
     	editor.commit();
     }
     
     
-    private void initialize(){
+    private void initialiseZmqAndOthers(){
 		try{
 			zmqSubscriber.interrupt();
 			zmqStatusString = "ZMQ restarting with "+aleHost;
 			Log.v(TAG, "interrupting ZMQ thread");
 		} catch (Exception e) { Log.e(TAG, "Exception in initialize interrupting ZMQ thread "+e); }
+		try { Thread.sleep(1000); } catch (Exception e) { Log.e(TAG, "Exception sleeping in initializeZmq "+e);	}
+		zmqSubscriber = null;
 		zmqMessageCounter = 0;
 		zmqMessagesForMyMac = 0;
 		zmqLastSeq = 0;
-		zmqMissedSeq = 0;		
+		zmqMissedSeq = 0;	
 		zmqHandler = new Handler(){
 	    	@Override
 	    	public void handleMessage(Message msg){ zmqMessageReceived(msg); }
@@ -851,17 +952,42 @@ public class MainActivity extends Activity {
 		try { myMac = wifiInfo.getMacAddress().toUpperCase(Locale.US); } catch (Exception e) { Log.e(TAG, "Exception getting MAC address "+e); }
         
 		aleDiscoveryAsyncTaskInProgress = false;
-        downloadFloorplanAsyncTaskInProgress = false;
+        getFloorplanAsyncTaskInProgress = false;
     	findMyLocationAsyncTaskInProgress = false;
         postFingerprintAsyncTaskInProgress = false;
+        sendChunkedDataAsyncTaskInProgress = false;
         
-        FindMyLocationAsyncTask findMyLocationAsyncTask = new FindMyLocationAsyncTask();
+        GetMyLocationAsyncTask getMyLocationAsyncTask = new GetMyLocationAsyncTask();
         String[] params = {myMac, "true"};
         //findMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, myMac);
-        findMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
-    
-		sensorMan = (SensorManager)getSystemService(SENSOR_SERVICE);
+        getMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
 		
+    }
+    
+    public void resetAllData(){
+	    aleAllPositionHistoryMap.clear();
+		alePositionHistoryList = new ArrayList<PositionHistoryObject>();
+		surveyHistoryList = new ArrayList<PositionHistoryObject>();
+		eventLogMap = new HashMap<String, ArrayList<String>>(500);
+		floorPlan = null;
+		floorList.clear();
+		floorListIndex = -1;
+		httpStatusString1 = "http Status";
+		httpStatusString2 = "";
+		zmqStatusString = "ZMQ Status";
+		selectFloorButtonText = "select a floor to track";
+		pickTargetButtonText = "showing all";
+		myMac = ""; 
+		myHashMac = null;
+		myFloorId = null;
+		myFloorIndex = -1;
+		targetMac = null;
+		targetHashMac = null;
+		showHistory = false;
+		showAllMacs = true;
+		waitingToTouchTarget = false;
+		touchTargetHashMac = null;
+		trackMode = true;
     }
     
     public void setViewsAndListeners(){
@@ -901,8 +1027,8 @@ public class MainActivity extends Activity {
     	else { surveyButton.setText("in survey mode"); }
     }
     
-    public void initializeConfigViews(){
-    	aleHostTextView.setText(aleHost);
+    public void initialiseConfigViews(){
+    	aleHostTextView.setText(aleHost+" port "+alePort);
     	if(scanningEnabled) { scanningEnabledTextView.setText("scanning enabled"); }
     	else { scanningEnabledTextView.setText("scanning disabled"); }
     	aleUsernameTextView.setText(aleUsername);
@@ -921,7 +1047,7 @@ public class MainActivity extends Activity {
     public void onPause(){
     	super.onPause();
     	Log.i(TAG, "onPause");
-		sensorMan.unregisterListener(sensorListener);
+    	try{ sensorMan.unregisterListener(sensorListener); } catch (Exception e) { Log.e(TAG, "Exception unregistering sensor listener "+e); }
     }
     
     @Override
@@ -934,14 +1060,13 @@ public class MainActivity extends Activity {
     public void onStart(){
     	super.onStart();
     	Log.i(TAG, "onStart");
-    	readSharedPreferences();
-    	setViewText();
+    	//readSharedPreferences();
+    	//setViewText();
     	runnable.run();
 		if(bluetoothEnabled) { 
 			try {
 				bluetoothBeaconScanner = new BluetoothBeaconScanner(); 
 				bluetoothBeaconScanner.bluetoothScanRunnable.run();
-//				bluetoothScanRunnable.run();
 			} catch (Exception e) { Log.e(TAG, "Exception starting bluetoothScanRunnable "+e); }
 		}
     }
@@ -951,12 +1076,15 @@ public class MainActivity extends Activity {
 		super.onStop();
 		Log.i(TAG, "onStop");
 		saveSharedPreferences();
-		try{
-			zmqSubscriber.interrupt();
+		if(zmqEnabled) {
+			try{
+				zmqSubscriber.interrupt();
+				Log.v(TAG, "onStop interrupting ZMQ thread");
+			} catch (Exception e) { Log.e(TAG, "Exception in initialize interrupting ZMQ thread "+e); }
+			try { Thread.sleep(1000); } catch (Exception e) { Log.e(TAG, "Exception sleeping in initializeZmq "+e);	}
 			zmqSubscriber = null;
-			zmqStatusString = "ZMQ restarting with "+aleHost;
-			Log.v(TAG, "interrupting ZMQ thread");
-		} catch (Exception e) { Log.e(TAG, "onStop() exception interrupting ZMQ thread "+e); }
+			zmqStatusString = "ZMQ stopping with "+aleHost;
+		}
 		zmqMessageCounter = 0;
 		zmqMessagesForMyMac = 0;
 		zmqLastSeq = 0;
@@ -965,9 +1093,10 @@ public class MainActivity extends Activity {
 			handler.removeCallbacks(runnable);
 		} catch (Exception e) { Log.e(TAG, "onStop() exception stopping runnable "+e); }
     	aleDiscoveryAsyncTaskInProgress = false;
-    	downloadFloorplanAsyncTaskInProgress = false;
+    	getFloorplanAsyncTaskInProgress = false;
     	findMyLocationAsyncTaskInProgress = false;
     	postFingerprintAsyncTaskInProgress = false;
+    	sendChunkedDataAsyncTaskInProgress = false;
     	if(bluetoothBeaconScanner != null) {
     	try {
     		bluetoothBeaconScanner.stopScanning();
@@ -979,12 +1108,12 @@ public class MainActivity extends Activity {
 	public void onDestroy(){
 		super.onDestroy();
 		Log.i(TAG, "onDestroy");	    
-	    aleAllPositionHistoryMap.clear();
-		alePositionHistoryList = new ArrayList<PositionHistoryObject>();
-		surveyHistoryList = new ArrayList<PositionHistoryObject>();
-		eventLogMap = new HashMap<String, ArrayList<String>>(500);
-		pickTargetButtonText = "showing all";
-		showAllMacs = true;
+//	    aleAllPositionHistoryMap.clear();
+//		alePositionHistoryList = new ArrayList<PositionHistoryObject>();
+//		surveyHistoryList = new ArrayList<PositionHistoryObject>();
+//		eventLogMap = new HashMap<String, ArrayList<String>>(500);
+//		pickTargetButtonText = "showing all";
+//		showAllMacs = true;
 		
 	}
 	

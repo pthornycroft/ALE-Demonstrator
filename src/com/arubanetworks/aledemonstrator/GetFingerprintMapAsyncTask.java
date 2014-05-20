@@ -8,7 +8,6 @@ import java.net.URL;
 import java.util.ArrayList;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.AsyncTask;
@@ -19,10 +18,11 @@ public class GetFingerprintMapAsyncTask extends AsyncTask < String, String, Stri
 	String TAG = "GetFingerprintMapAsyncTask";
 	HttpURLConnection connection;
 	int TIMEOUT_VALUE = 15000;
-	String urlString = ":8080/api/v1/survey/map";
+	String urlString = "/api/v1/survey/map";
 	String result = "fail";
 		
 	protected String doInBackground(String... params) {
+		Log.d(TAG, "getFingerprintMapAsyncTask starting with "+params[0]);
 		JSONObject jsonObject = new JSONObject();
 		try {
 			jsonObject.put("floorId", params[0]);
@@ -31,7 +31,7 @@ public class GetFingerprintMapAsyncTask extends AsyncTask < String, String, Stri
 		try {
 			
 			try {
-				URL url = new URL("http://" + MainActivity.aleHost + urlString);
+				URL url = new URL("http://" + MainActivity.aleHost + ":" +MainActivity.alePort + urlString);
 				Log.i(TAG, "getting fingerprint map with "+url.toString());
 				Log.i(TAG, "posting this JSON "+params[0]);				
 				connection = (HttpURLConnection) url.openConnection();
@@ -45,6 +45,7 @@ public class GetFingerprintMapAsyncTask extends AsyncTask < String, String, Stri
 				OutputStreamWriter out = new OutputStreamWriter(connection.getOutputStream());
 				out.write(payload);
 				out.flush();
+				
 				Log.v(TAG, "ALE Post response status code "+connection.getResponseCode());
 	            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
 		        StringBuilder builder = new StringBuilder();
@@ -53,10 +54,12 @@ public class GetFingerprintMapAsyncTask extends AsyncTask < String, String, Stri
 	                builder.append(line);	                
 	            }
 	            result = builder.toString();
+	            
 	            out.close();
-	            in.close();            
+	            in.close();     
+	            
 	        } finally {
-	            connection.disconnect();
+	        	try { connection.disconnect(); } catch (Exception e) { Log.e(TAG, "Exception disconnecting connection "+e); }
 	        }
 
 		} catch (Exception e) { Log.e(TAG, "Post Exception "+e); }
@@ -105,7 +108,7 @@ public class GetFingerprintMapAsyncTask extends AsyncTask < String, String, Stri
 				Log.v(TAG, "1 "+i+"  "+surveyPoint.toString());
 				float locationX = (float)surveyPoint.getDouble("locationX");
 				float locationY = (float)surveyPoint.getDouble("locationY");
-				boolean satisfactory = surveyPoint.getBoolean("satisfactory");
+				int satisfactory = Integer.parseInt(surveyPoint.getString("satisfactory"));
 				if(surveyPoint.has("radioCoverage")) {
 					JSONArray j2Array = surveyPoint.getJSONArray("radioCoverage");
 					ArrayList<RadioCoverPoint> radioCoverList = new ArrayList<RadioCoverPoint>();

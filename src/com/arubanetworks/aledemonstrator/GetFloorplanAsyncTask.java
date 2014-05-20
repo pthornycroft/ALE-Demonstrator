@@ -15,31 +15,33 @@ import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
 
-public class DownloadFloorplanAsyncTask extends AsyncTask <String, Integer, Bitmap> {
-	static String TAG = "DownloadFloorplanAsyncTask";
+public class GetFloorplanAsyncTask extends AsyncTask <String, Integer, Bitmap> {
+	static String TAG = "GetFloorplanAsyncTask";
 	int TIMEOUT_VALUE = 15000;
 	
 	protected Bitmap doInBackground(String... params) {
 		
-		Bitmap result = downloadFloorplanJpg("http://"+MainActivity.aleHost+params[0]);
+		Bitmap result = downloadFloorplanJpg("http://"+MainActivity.aleHost+":"+MainActivity.floorplanDownloadPort+params[0]);
 		
 		return result;
 	}
 	
 	public void onPreExecute(){
-		Log.i(TAG, "DownloadFloorplanAsyncTask starting");
-		MainActivity.downloadFloorplanAsyncTaskInProgress = true;
+		Log.i(TAG, "GetFloorplanAsyncTask starting");
+		MainActivity.getFloorplanAsyncTaskInProgress = true;
 		MainActivity.httpStatusString2 = "Starting floorplan image download";
+		MainActivity.selectFloorButton.startAnimation(MainActivity.animAlpha);
 	}
 	
 	public void onPostExecute(Bitmap result){
-		Log.i(TAG, "DownloadFloorplanAsyncTask finished");
-		MainActivity.downloadFloorplanAsyncTaskInProgress = false;
+		Log.i(TAG, "GetFloorplanAsyncTask finished");
+		MainActivity.getFloorplanAsyncTaskInProgress = false;
+		MainActivity.selectFloorButton.clearAnimation();
 		if(result != null){
 			MainActivity.floorPlan = result;
 			MainActivity.httpStatusString2 = "Successful floorplan image download";
 		}
-		else { MainActivity.httpStatusString2 = "Unsuccessful floorplan image download"; }
+		//else { MainActivity.httpStatusString2 = "Unsuccessful floorplan image download"; }
 	}
 
 
@@ -47,13 +49,14 @@ public class DownloadFloorplanAsyncTask extends AsyncTask <String, Integer, Bitm
   	private Bitmap downloadFloorplanJpg(String url){
   		Bitmap result = null;
 		URL urlFloorPlan = null;
+		Log.v(TAG, "  downloadFloorplanJpg with "+url);
 		try {  
 			urlFloorPlan = new URL(url);
 		} catch (MalformedURLException e) { Log.e(TAG, "  downloadFloorplanJpg exception malformed URL for urlFloorPlan " + e); }
 		
 		try {
-			result = getURLImage(urlFloorPlan);				
-		} catch (Exception e) { Log.e(TAG, "  extractFloorPlan exception in getURLImage(urlFloorPlan)"+e); }
+			result = getURLImage(urlFloorPlan);	
+		} catch (Exception e) { Log.e(TAG, "  downloadFloorplanJpg exception in getURLImage(urlFloorPlan)"+e); }
 		
 		return result;
   	}
@@ -65,7 +68,11 @@ public class DownloadFloorplanAsyncTask extends AsyncTask <String, Integer, Bitm
 		try{
 			HttpURLConnection connection = (HttpURLConnection) imageURL.openConnection();
 			connection.setRequestProperty("Authorization", "Basic "+Base64.encodeToString((MainActivity.aleUsername+":"+MainActivity.alePassword).getBytes(), Base64.NO_WRAP));
-			if(connection.getResponseCode() != 200) { Log.e(TAG, "Exception opening connection "+connection.getResponseCode()+"  "+connection.getResponseMessage()); }
+			if(connection.getResponseCode() != 200) { 
+				Log.e(TAG, "Exception opening connection "+connection.getResponseCode()+"  "+connection.getResponseMessage()); 
+				MainActivity.httpStatusString2 = connection.getResponseCode()+"  "+connection.getResponseMessage();
+			}
+			
 			// prints the outgoing headers for troubleshooting
 			/*Map<String, List<String>> mapOut = connection.getRequestProperties();
 			for(Entry<String, List<String>> entry : mapOut.entrySet()) { 
@@ -86,7 +93,7 @@ public class DownloadFloorplanAsyncTask extends AsyncTask <String, Integer, Bitm
 			connection.setConnectTimeout(TIMEOUT_VALUE);
 			connection.setReadTimeout(TIMEOUT_VALUE);
 			BufferedInputStream insImageURL = new BufferedInputStream(is, 8196);
-			Log.v(TAG, "http "+imageURL.toString()+" result code was "+connection.getResponseCode()+"  response message "+connection.getResponseMessage());				
+			
 			// test the size of the image to see if we need to compress it
 			final BitmapFactory.Options bmOptions = new BitmapFactory.Options();
 			bmOptions.inPurgeable = true;
@@ -109,6 +116,9 @@ public class DownloadFloorplanAsyncTask extends AsyncTask <String, Integer, Bitm
 			int bmHt = bmImage.getHeight();
 			bmImage = Bitmap.createScaledBitmap(bmImage, bmWd/1, bmHt/1, false);
 			Log.v(TAG, "scaled image dimensions "+bmWd+"  "+bmHt);
+		} catch (java.net.ConnectException e) { 
+			Log.e(TAG, "  extractFloorPlan " + e);
+			MainActivity.httpStatusString2 = e.getMessage().toString();
 		} catch (Exception e) { 
 			Log.e(TAG, "Exception in getURLImage " + MainActivity.aleUsername + "  " + MainActivity.alePassword + "  url was " + imageURL.toString() + "\n" + e); 
 		}

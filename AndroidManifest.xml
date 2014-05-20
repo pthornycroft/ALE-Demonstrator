@@ -6,12 +6,14 @@
 <!-- new version 5 on 18Feb14 with bugfix for NPE crash if no Wi-Fi connection -->
 <!-- new version 6 on 22Apr14 with improved settings dialog, scanning added and first-pass fingerprinting with API and iBeacon reports -->
 <!-- new version 7 on 01May14 with fingerprinting and map display features -->
+<!-- new version 8 on 14May14 with configurable port numbers for http and image download and new fingerprint colour options -->
+<!-- new version 9 on 19May14 with several fixes to set scanning interval to 10s, allow disable zmq and clear all data.  Tested fingerprint map.  -->
 
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.arubanetworks.aledemonstrator"
-    android:versionCode="7"
-    android:versionName="7" >
+    android:versionCode="9"
+    android:versionName="9" >
 
     <uses-sdk
         android:minSdkVersion="11"
