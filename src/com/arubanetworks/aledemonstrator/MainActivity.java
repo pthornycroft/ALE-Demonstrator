@@ -67,10 +67,10 @@ public class MainActivity extends Activity {
 
 	static ArrayList<AleCampus> campusList;
 	static ArrayList<AleBuilding> buildingList;
-	static ArrayList<AleFloor> floorList;
+	static ArrayList<AleFloor> floorList = new ArrayList<AleFloor>();;
 	static int floorListIndex = -1;
 	
-	static boolean zmqEnabled = true;
+	static boolean zmqEnabled = false;
 	private volatile ZMQSubscriber zmqSubscriber;
 //	ZMQSubscriber2 zmqSubscriber;
 	static Handler zmqHandler;
@@ -105,10 +105,10 @@ public class MainActivity extends Activity {
     static boolean bluetoothEnabled = false;
 	BluetoothManager bluetoothManager;
 	static BluetoothAdapter bluetoothAdapter;
-	private Handler bluetoothScanIntervalHandler = new Handler();
-	private int SCAN_INTERVAL = 60000;
-	private Handler bluetoothScanDurationHandler = new Handler();
-	private int SCAN_DURATION = 1000;
+//	private Handler bluetoothScanIntervalHandler = new Handler();
+//	private int SCAN_INTERVAL = 60000;
+//	private Handler bluetoothScanDurationHandler = new Handler();
+//	private int SCAN_DURATION = 1000;
 	static final int REQUEST_ENABLE_BT = 1;
 	static String bleBeaconResults = " ";
 	static JSONArray iBeaconJsonArray = null;
@@ -227,12 +227,12 @@ public class MainActivity extends Activity {
     			zmqStatusString = +zmqMessageCounter+" ZMQ messages, "+zmqMessagesForMyMac+" for my MAC "; 
     		}
     		
-    		if(counter%5 == 4 && scanningEnabled && wifiManager != null){
+    		if(counter%5 == 1 && scanningEnabled && wifiManager != null){
     			wifiManager.startScan();
     			Log.d(TAG, "start scan");
     		}
     		
-    		if(counter%30 == 7 && trackMode == false){
+    		if(counter%5 == 3 && trackMode == false){
     			getFingerprintMap();
     		}
     		
@@ -310,7 +310,7 @@ public class MainActivity extends Activity {
     			    			selectFloorButtonText = "can't find the floor yet\nplease try again";
     			    			selectFloorButton.setText(selectFloorButtonText); 
     			    			floorListIndex = -1;
-    			    			floorPlan = null;
+    			    			if(floorPlan != null) { floorPlan = null; }
     			    			floorPlanView.initialize();
     			    			Log.v(TAG,"selected my floor but bad myFloorIndex "+myFloorIndex);
     			    	        if(findMyLocationAsyncTaskInProgress == false) {
@@ -333,7 +333,7 @@ public class MainActivity extends Activity {
 				    		selectFloorButton.setText(selectFloorButtonText);
 				    		floorListIndex = i;
 				    		// download the floorplan
-				    		floorPlan = null;
+				    		if(floorPlan != null) { floorPlan = null; }
 				    		floorPlanView.initialize();
 				    		Log.v(TAG, "url for floorplan "+floorList.get(i).floor_img_path);
 				    		GetFloorplanAsyncTask getFloorplanAsyncTask = new GetFloorplanAsyncTask();
@@ -494,7 +494,7 @@ public class MainActivity extends Activity {
     					sensorMan.registerListener(sensorListener, sensorMan.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL);
         	    	    Log.v(TAG, "sensor listener registered, sensors type all enabled " + sensorMan.getSensorList(Sensor.TYPE_ALL));
     				} catch (Exception e) { Log.e(TAG, "Exception registering sensors "+e); }
-    				getFingerprintMap();
+//    				getFingerprintMap();
     			} else {
     				trackMode = true;
     				surveyButton.setText("in track mode");
@@ -545,7 +545,7 @@ public class MainActivity extends Activity {
     // sends a POST to ALE with new survey point
     public static void addSurveyPointToAle(){
 		if(postFingerprintAsyncTaskInProgress == false) {
-			SurveyObject surveyObject = new SurveyObject(formSurveyPositionHistoryObject(), "add", false);
+			SurveyObject surveyObject = new SurveyObject(formSurveyPositionHistoryObject(), "add", false, 0);
     		PostFingerprintAsyncTask postFingerprintAsyncTask = new PostFingerprintAsyncTask();
     		postFingerprintAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, surveyObject);
     		
@@ -560,7 +560,7 @@ public class MainActivity extends Activity {
     // sends a POST to ALE to delete a survey point
     public static void deleteSurveyPointFromAle(PositionHistoryObject pho){
 		if(postFingerprintAsyncTaskInProgress == false) {
-			SurveyObject surveyObject = new SurveyObject(pho, "delete", false);
+			SurveyObject surveyObject = new SurveyObject(pho, "delete", false, 0);
     		PostFingerprintAsyncTask postFingerprintAsyncTask = new PostFingerprintAsyncTask();
     		postFingerprintAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, surveyObject);
 		}
@@ -588,7 +588,7 @@ public class MainActivity extends Activity {
 			if(scanningEnabled) { scanningEnabledString = "enabled"; }
 			String enableZmqString = "disabled";
 			if(zmqEnabled) { enableZmqString = "enabled"; }
-			final String[] titles = {"ALE host address  ", "ALE port   ", "ALE username  ", "ALE password  ", "Scanning ", "Floorplan download port ", "ZMQ publish-subscribe ", "reset ALE Demonstrator (clear all data)"};
+			final String[] titles = {"ALE host address  ", "ALE port (8080)  ", "ALE username  ", "ALE password  ", "Scanning ", "Floorplan download port (80)  ", "ZMQ publish-subscribe ", "reset ALE Demonstrator (clear all data)"};
 			final String[] values = {aleHost, alePort, aleUsername, "*password*", scanningEnabledString, floorplanDownloadPort, enableZmqString, ""};
 			CharSequence[] targetList = {titles[0]+values[0], titles[1]+values[1], titles[2]+values[2], titles[3]+values[3], titles[4]+values[4], titles[5]+values[5], 
 					titles[6]+values[6], titles[7]+values[7]};
@@ -823,7 +823,7 @@ public class MainActivity extends Activity {
 		return false;
 	}
 	
-	Runnable bluetoothScanRunnable = new Runnable(){
+/*	Runnable bluetoothScanRunnable = new Runnable(){
 		public void run(){
 			
 			if(bluetoothScanCallback == null){
@@ -855,8 +855,8 @@ public class MainActivity extends Activity {
 			bluetoothScanIntervalHandler.postDelayed(bluetoothScanRunnable, SCAN_INTERVAL);
 		}
 	};
-	
-	private void scanLeDevice(final boolean enable) {
+*/	
+/*	private void scanLeDevice(final boolean enable) {
 		if (enable) {
 			bluetoothScanDurationHandler.postDelayed(new Runnable() {
 				@Override
@@ -881,9 +881,9 @@ public class MainActivity extends Activity {
 			bluetoothAdapter.stopLeScan(bluetoothScanCallback);
 		}
 	}
-	
+*/	
 
-	public String hasBluetoothService(BluetoothDevice device){
+/*	public String hasBluetoothService(BluetoothDevice device){
 		String result =" _";
 		if(device.getBluetoothClass().hasService(BluetoothClass.Service.AUDIO)) result += "A";
 		if(device.getBluetoothClass().hasService(BluetoothClass.Service.CAPTURE)) result += "C";
@@ -896,7 +896,7 @@ public class MainActivity extends Activity {
 		if(device.getBluetoothClass().hasService(BluetoothClass.Service.TELEPHONY)) result += "T";
 		return result;
 	}
-
+*/
     
     private void readSharedPreferences(){
     	Log.i(TAG, "reading shared preferences");
@@ -969,7 +969,7 @@ public class MainActivity extends Activity {
 		alePositionHistoryList = new ArrayList<PositionHistoryObject>();
 		surveyHistoryList = new ArrayList<PositionHistoryObject>();
 		eventLogMap = new HashMap<String, ArrayList<String>>(500);
-		floorPlan = null;
+		if(floorPlan != null) { floorPlan = null; }
 		floorList.clear();
 		floorListIndex = -1;
 		httpStatusString1 = "http Status";

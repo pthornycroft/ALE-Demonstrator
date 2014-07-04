@@ -8,12 +8,16 @@
 <!-- new version 7 on 01May14 with fingerprinting and map display features -->
 <!-- new version 8 on 14May14 with configurable port numbers for http and image download and new fingerprint colour options -->
 <!-- new version 9 on 19May14 with several fixes to set scanning interval to 10s, allow disable zmq and clear all data.  Tested fingerprint map.  -->
+<!-- new version 10 on 22May14 with single fix for crash on null floorplan initialization -->
+<!-- new version 11 on 06Jun14 with fingerprint timeout set to 120 sec (from 60 sec) -->
+<!-- new version 12 on 17Jun14 with fingerprint map request interval reduced from 60 to 10sec when in survey mode -->
+<!-- new version 13 on 26Jun14 with colour response for fingerprint post -->
 
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.arubanetworks.aledemonstrator"
-    android:versionCode="9"
-    android:versionName="9" >
+    android:versionCode="13"
+    android:versionName="13" >
 
     <uses-sdk
         android:minSdkVersion="11"

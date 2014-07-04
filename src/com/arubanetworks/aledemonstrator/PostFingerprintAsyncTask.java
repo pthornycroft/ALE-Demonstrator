@@ -14,11 +14,11 @@ import android.util.Log;
 public class PostFingerprintAsyncTask extends AsyncTask < SurveyObject, String, SurveyObject> {
 	String TAG = "PostFingerprintAsyncTask";
 	HttpURLConnection connection;
-	int TIMEOUT_VALUE = 60000;
+	int TIMEOUT_VALUE = 120000;
 	String urlString = "/api/v1/survey/fingerprint";
 	
 	protected SurveyObject doInBackground(SurveyObject... params) {
-		SurveyObject result = new SurveyObject(params[0].pho, params[0].action, false);
+		SurveyObject result = new SurveyObject(params[0].pho, params[0].action, false, 0);
 		PositionHistoryObject pho = params[0].pho;
 		JSONObject jsonObject = JsonBuilders.formFingerprintJsonObject( pho.ethAddr, pho.timestamp.getTime(), pho.floorId, pho.touchX, 
     			pho.touchY, pho.units, pho.deviceMfg, pho.deviceModel, pho.compassDegrees, pho.iBeaconJsonArray);
@@ -49,8 +49,9 @@ public class PostFingerprintAsyncTask extends AsyncTask < SurveyObject, String, 
 	            while ((line = in.readLine()) != null) {
 	                builder.append(line);	                
 	            }
-	            boolean didSucceed = parseFingerprintPostResponse(builder.toString());
-	            result = new SurveyObject(params[0].pho, params[0].action, didSucceed);
+	            boolean didSucceed = parseFingerprintPostResponseForResult(builder.toString());
+	            int satisfactory = parseFingerprintPostResponseForSatisfactory(builder.toString());
+	            result = new SurveyObject(params[0].pho, params[0].action, didSucceed, satisfactory);
 	            Log.v(TAG, "ALE Post response to survey post "+builder.toString()+"\n"+result);
 	            out.close();
 	            in.close();            
@@ -73,15 +74,28 @@ public class PostFingerprintAsyncTask extends AsyncTask < SurveyObject, String, 
 		MainActivity.postFingerprintAsyncTaskInProgress = false;
 		if(result.action.equals("add")) { MainActivity.addSurveyPointToList(result.pho, result.success); }
 		else if(result.action.equals("delete")) { MainActivity.deleteSurveyPointFromList(result.pho, result.success); }
+		if(result.action.equals("add") && result.satisfactory > 0 ) { 
+			FingerprintMapPoint newPoint = new FingerprintMapPoint(result.pho.measuredX, result.pho.measuredY, result.satisfactory, null);
+			MainActivity.floorList.get(MainActivity.floorListIndex).fingerprintMapList.add(newPoint);
+		}
 		MainActivity.surveyConfirmButton.clearAnimation();
 	}	
 	
-	private boolean parseFingerprintPostResponse(String in) {
+	private boolean parseFingerprintPostResponseForResult(String in) {
 		boolean result = false;
 		try {
 			JSONObject jObject = new JSONObject(in);
 			result = jObject.getBoolean("result");
-		} catch (Exception e) { Log.e(TAG, "could not parse fingerprint Post response "+e); }
+		} catch (Exception e) { Log.e(TAG, "could not parse fingerprint Post response for result "+e); }
+		return result;
+	}
+	
+	private int parseFingerprintPostResponseForSatisfactory(String in) {
+		int result = 0;
+		try {
+			JSONObject jObject = new JSONObject(in);
+			if(jObject.has("satisfactory")) { result = jObject.getInt("satisfactory"); }
+		} catch (Exception e) { Log.e(TAG, "could not parse fingerprint Post response for satisfactory "+e); }
 		return result;
 	}
 

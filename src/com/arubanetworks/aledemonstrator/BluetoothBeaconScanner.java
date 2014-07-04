@@ -14,7 +14,7 @@ public class BluetoothBeaconScanner {
 //    BluetoothManager bluetoothManager;
 //	BluetoothAdapter bluetoothAdapter;
 	private Handler bluetoothScanIntervalHandler = new Handler();
-	private int SCAN_INTERVAL = 10000;
+	private int SCAN_INTERVAL = 60000; ///
 	private Handler bluetoothScanDurationHandler = new Handler();
 	private int SCAN_DURATION = 1000;
 	public BluetoothAdapter.LeScanCallback bluetoothScanCallback;
