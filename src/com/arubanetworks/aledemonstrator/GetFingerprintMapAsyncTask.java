@@ -22,7 +22,7 @@ public class GetFingerprintMapAsyncTask extends AsyncTask < String, String, Stri
 	String result = "fail";
 		
 	protected String doInBackground(String... params) {
-		Log.d(TAG, "getFingerprintMapAsyncTask starting with "+params[0]);
+		//Log.d(TAG, "getFingerprintMapAsyncTask starting with "+params[0]);
 		JSONObject jsonObject = new JSONObject();
 		try {
 			jsonObject.put("floorId", params[0]);
@@ -33,7 +33,7 @@ public class GetFingerprintMapAsyncTask extends AsyncTask < String, String, Stri
 			try {
 				URL url = new URL("http://" + MainActivity.aleHost + ":" +MainActivity.alePort + urlString);
 				Log.i(TAG, "getting fingerprint map with "+url.toString());
-				Log.i(TAG, "posting this JSON "+params[0]);				
+				//Log.i(TAG, "posting this JSON "+params[0]);				
 				connection = (HttpURLConnection) url.openConnection();
 				connection.setConnectTimeout(TIMEOUT_VALUE);
 				connection.setReadTimeout(TIMEOUT_VALUE);
@@ -46,7 +46,7 @@ public class GetFingerprintMapAsyncTask extends AsyncTask < String, String, Stri
 				out.write(payload);
 				out.flush();
 				
-				Log.v(TAG, "ALE Post response status code "+connection.getResponseCode());
+				//Log.v(TAG, "ALE Post response status code "+connection.getResponseCode());
 	            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
 		        StringBuilder builder = new StringBuilder();
 		        String line;
@@ -72,11 +72,11 @@ public class GetFingerprintMapAsyncTask extends AsyncTask < String, String, Stri
 	}
 	
 	public void onPostExecute(String result){
-		Log.i(TAG, "GetFingerprintMapAsyncTask finished with "+result);
+		//Log.i(TAG, "GetFingerprintMapAsyncTask finished with "+result);
 		MainActivity.getFingerprintMapAsyncTaskInProgress = false;
 		String floorId = parseResultForFloor(result);
-		Log.v(TAG, "floorId "+floorId);
-		Log.v(TAG, "parsed"+parseResultForFingerprintMap(result));
+		//Log.v(TAG, "floorId "+floorId);
+		//Log.v(TAG, "parsed"+parseResultForFingerprintMap(result));
 		if(MainActivity.floorList != null && MainActivity.floorListIndex != -1 && MainActivity.floorList.size() >= MainActivity.floorListIndex &&
 			floorId != null && floorId.equals(MainActivity.floorList.get(MainActivity.floorListIndex).floor_id)) {
 			ArrayList<FingerprintMapPoint> fingerprintMap = parseResultForFingerprintMap(result);
@@ -90,7 +90,7 @@ public class GetFingerprintMapAsyncTask extends AsyncTask < String, String, Stri
 		try{
 			JSONObject jObject = new JSONObject(in);
 			result = jObject.getString("floorId");
-			Log.v(TAG, "fingerprint map floor id "+result);
+			//Log.v(TAG, "fingerprint map floor id "+result);
 		} catch (Exception e) { 
 			Log.e(TAG, "could not parse json floor object "+e); 
 		}
@@ -105,7 +105,7 @@ public class GetFingerprintMapAsyncTask extends AsyncTask < String, String, Stri
 			JSONArray jArray = jObject.getJSONArray("surveyPoint");
 			for(int i=0; i<jArray.length(); i++){
 				JSONObject surveyPoint = jArray.getJSONObject(i);  // gets the msg object
-				Log.v(TAG, "1 "+i+"  "+surveyPoint.toString());
+				//Log.v(TAG, "1 "+i+"  "+surveyPoint.toString());
 				float locationX = (float)surveyPoint.getDouble("locationX");
 				float locationY = (float)surveyPoint.getDouble("locationY");
 				int satisfactory = Integer.parseInt(surveyPoint.getString("satisfactory"));

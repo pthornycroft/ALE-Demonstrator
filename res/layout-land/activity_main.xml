@@ -7,11 +7,13 @@
     <LinearLayout 
         android:layout_width="250dp"
         android:layout_height="fill_parent"
+        android:background="@android:color/black"
         android:orientation="vertical">
 
 	    <LinearLayout 
 	        android:layout_width="fill_parent"
 	        android:layout_height="20dp"
+	        android:background="@android:color/white"
 	        android:orientation="horizontal">        
 		    <TextView 
 		      	android:id="@+id/aleHostTextView"
@@ -27,12 +29,12 @@
 	        	android:layout_weight="1"
 	       		android:textSize="12sp"
 	        	android:hint="username" /> 	 		      	
-
 		</LinearLayout>
         	
 	    <LinearLayout 
 	        android:layout_width="fill_parent"
 	        android:layout_height="20dp"
+	        android:background="@android:color/white"
 	        android:orientation="horizontal"> 
             <TextView
 	        	android:id="@+id/scanningEnabledTextView"
@@ -62,6 +64,7 @@
 	        android:id="@+id/statusText01"
 	        android:layout_width="fill_parent"
 	        android:layout_height="60dp"
+	        android:background="@android:color/white"
 	        android:textSize="12sp"
 			android:text="... http status ..."/>
 	   	
@@ -69,6 +72,7 @@
 	        android:id="@+id/statusText02"
 	        android:layout_width="fill_parent"
 	        android:layout_height="60dp"
+	        android:background="@android:color/white"
 	      	android:textSize="12sp"
 			android:text="... zmq status ..."/>
 
@@ -76,6 +80,7 @@
 	    <LinearLayout 
 	        android:layout_width="fill_parent"
 	        android:layout_height="35dp"
+	        android:background="@android:color/black"
 	        android:orientation="horizontal">
 		    <Button 
 		        android:id="@+id/pickTargetButton"
@@ -98,11 +103,13 @@
 	    <View 
 	        android:layout_width="fill_parent"
 	        android:layout_height="0dp"
+	        android:background="@android:color/white"
 	        android:layout_weight="1"/>
 		
 		<LinearLayout 
 	        android:layout_width="fill_parent"
 	        android:layout_height="35dp"
+	        android:background="@android:color/black"
 	        android:orientation="horizontal">
 		    <Button 
 		        android:id="@+id/surveyButton"
@@ -111,7 +118,16 @@
 		        android:layout_weight="1"
 		        android:background="@drawable/rounded_button"
 		        android:textSize="12sp"
-				android:text="in track mode"/>   	
+				android:text="in track mode"/>
+			<Button 
+	        	android:id="@+id/emailButton"
+	        	android:layout_width="10dp"
+	        	android:layout_height="fill_parent"
+	        	android:layout_weight="0.5"
+	        	android:background="@drawable/rounded_button"
+	        	android:textSize="12sp"
+				android:text="email"
+				android:visibility="gone"/>		       	
 		    <Button 
 		        android:id="@+id/surveyConfirmButton"
 		        android:layout_width="50dp"

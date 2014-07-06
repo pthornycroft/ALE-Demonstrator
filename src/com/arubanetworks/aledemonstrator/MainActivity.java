@@ -1,5 +1,10 @@
 package com.arubanetworks.aledemonstrator;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -7,6 +12,8 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.json.JSONArray;
+
+import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
@@ -25,6 +32,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -57,6 +65,7 @@ public class MainActivity extends Activity {
 	static Button pickTargetButton;
 	Button trackHistoryButton;
 	Button surveyButton;
+	Button emailButton;
 	static Button surveyConfirmButton;
 	FloorPlanView floorPlanView;
 	
@@ -148,6 +157,8 @@ public class MainActivity extends Activity {
 	static HashMap<String, ArrayList<String>> eventLogMap = new HashMap<String, ArrayList<String>>(500);
 	// this is a list of position history objects for a single target, holding site survey results
 	static ArrayList<PositionHistoryObject> surveyHistoryList = new ArrayList<PositionHistoryObject>();
+	// this is a list of verify objects, holding verify survey results
+	static ArrayList<VerifyObject> verifyHistoryList = new ArrayList<VerifyObject>();
 	
 	static Animation animAlpha;
 
@@ -156,24 +167,32 @@ public class MainActivity extends Activity {
 	
 	static float surveyPointX = 0;
 	static float surveyPointY = 0;
-	static boolean trackMode = true;  // if false, we are in survey mode
 	
+	static final int MODE_TRACK = 0;
+	static final int MODE_SURVEY = 1;
+	static final int MODE_VERIFY = 2;
+	static int trackMode = MODE_TRACK;
+
 	static boolean postFingerprintAsyncTaskInProgress = false;
+	
+	String csvEmailAddress = "";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		context = this;
 		setContentView(R.layout.activity_main);
-		setViewsAndListeners();	
-		setViewText();
+		setViewsAndListeners();
+		readSharedPreferences();
 		
 		animAlpha = AnimationUtils.loadAnimation(this,  R.anim.anim_alpha);
 		
-		readSharedPreferences();
 		initialiseZmqAndOthers();   	
 		
 		bluetoothEnabled = initialiseBluetooth();
+	
+		setViewText();
+		
 		
 	}
     
@@ -186,6 +205,9 @@ public class MainActivity extends Activity {
     			PostChunkedDataAsyncTask postChunkedDataAsyncTask = new PostChunkedDataAsyncTask();
     			postChunkedDataAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     		}   		
+*/    		
+/*    		PositionHistoryObject ppp = new PositionHistoryObject(new Date(), (float)50, (float)60, (float)150, (float)160);
+    		alePositionHistoryList.add(ppp);
 */    		
     		initialiseConfigViews();
     		statusText01.setText("HTTP STATUS\n"+httpStatusString1+"\n"+httpStatusString2);
@@ -232,7 +254,7 @@ public class MainActivity extends Activity {
     			Log.d(TAG, "start scan");
     		}
     		
-    		if(counter%5 == 3 && trackMode == false){
+    		if(counter%5 == 3 && trackMode != MODE_TRACK){
     			getFingerprintMap();
     		}
     		
@@ -482,35 +504,84 @@ public class MainActivity extends Activity {
     	}
     };
     
-    private OnClickListener surveyButtonListener = new OnClickListener(){
+    
+    private OnClickListener surveyModeListener = new OnClickListener(){
     	@Override
     	public void onClick(View v) {
     		if(v == surveyButton){
-    			if(trackMode){
-    				trackMode = false;
-    				surveyButton.setText("in survey mode");
-    				try{
-    					sensorMan.registerListener(sensorListener, sensorMan.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
-    					sensorMan.registerListener(sensorListener, sensorMan.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL);
-        	    	    Log.v(TAG, "sensor listener registered, sensors type all enabled " + sensorMan.getSensorList(Sensor.TYPE_ALL));
-    				} catch (Exception e) { Log.e(TAG, "Exception registering sensors "+e); }
-//    				getFingerprintMap();
-    			} else {
-    				trackMode = true;
-    				surveyButton.setText("in track mode");
-    				try{
-    					sensorMan.unregisterListener(sensorListener);
-        	    		Log.v(TAG, "sensor listener unregistered");
-    				} catch (Exception e) { Log.e(TAG, "Exception unregistering sensors "+e); }
-    			}
-    		} 
-    		if(v == surveyConfirmButton && trackMode == false) {
+    			final CharSequence[] modeChoices = {"track mode", "survey mode", "verify mode"};
+    			AlertDialog.Builder builder = new AlertDialog.Builder(context);
+    			builder.setTitle("Pick a Mode");
+    			builder.setSingleChoiceItems(modeChoices, trackMode, new DialogInterface.OnClickListener() {
+    			    @Override
+    			    public void onClick(DialogInterface dialog, int i) {
+    			    	trackMode = i;
+    			    }
+    			});
+    			builder.setPositiveButton("OK",  new DialogInterface.OnClickListener() {
+    				@Override
+    				public void onClick(DialogInterface dialog, int i) {
+    					setViewText();
+    					Log.v(TAG, "set survey button to "+surveyButton.getText().toString());
+    	    			if(trackMode == MODE_SURVEY){
+    	    				// activate the compass sensors if we are now in survey mode
+    	    				try{
+    	    					sensorMan.registerListener(sensorListener, sensorMan.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+    	    					sensorMan.registerListener(sensorListener, sensorMan.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL);
+    	        	    	    Log.v(TAG, "sensor listener registered, sensors type all enabled " + sensorMan.getSensorList(Sensor.TYPE_ALL));
+    	    				} catch (Exception e) { Log.e(TAG, "Exception registering sensors "+e); }
+    	    			} else {
+    	    				// deactivate the compass sensors
+    	    				try{
+    	    					sensorMan.unregisterListener(sensorListener);
+    	        	    		Log.v(TAG, "sensor listener unregistered");
+    	    				} catch (Exception e) { Log.e(TAG, "Exception unregistering sensors "+e); }
+    	    			}
+    					return;
+    				}
+    			});
+    			builder.show();
+	    	}
+    	}
+    };
+    
+    private OnClickListener surveyButtonListener = new OnClickListener(){
+    	@Override
+    	public void onClick(View v) {
+    		
+    		if (v == surveyConfirmButton && trackMode == MODE_SURVEY) {
     			Log.v(TAG, "survey point confirmed "+surveyPointX+"  "+surveyPointY);
     			if(wifiManager != null) { wifiManager.startScan(); }  // sends probe requests that the APs will forward to ALE
     			if(floorList != null && floorList.size() > 0 && floorListIndex != -1) {  // don't attempt to send a fingerprint without a floor
     				addSurveyPointToAle();
     			}
     		}
+    		
+    		else if (v == surveyConfirmButton && trackMode == MODE_VERIFY) {
+    			// if the verify button was clicked, bind the centred point with the last ALE position for myMac
+    			if(alePositionHistoryList.size() > 0) {
+    				Date trueTime = new Date();
+    				Date aleTime = alePositionHistoryList.get(0).timestamp;
+    				float measuredX = alePositionHistoryList.get(0).measuredX;
+    				float measuredY = alePositionHistoryList.get(0).measuredY;
+    				VerifyObject newVerifyObject = new VerifyObject(trueTime, surveyPointX, surveyPointY, aleTime, measuredX, measuredY);
+    				verifyHistoryList.add(newVerifyObject);
+    				float diff = (float)(trueTime.getTime() - aleTime.getTime())/(float)1000;
+    				double distDiff = Math.sqrt((surveyPointX - measuredX)*(surveyPointX - measuredX) + (surveyPointY - measuredY)*(surveyPointY - measuredY));
+     				Toast toast = Toast.makeText(context, ("add verify point success\n"+String.format("%.2f",surveyPointX)+"  "+String.format("%.2f",surveyPointY)+" error "+String.format("%.2f",distDiff)), Toast.LENGTH_LONG);
+    				toast.show();
+    				Log.v(TAG, "verify point confirmed "+surveyPointX+","+surveyPointY+"  ale "+measuredX+","+measuredY+"  dist diff "+distDiff+"  time diff "+diff+"  verify hist "+verifyHistoryList.size()+"  position hist "+alePositionHistoryList.size());
+    			}
+    			else {
+    				Log.w(TAG, "tried to confirm a verify point but alePositionHistoryList was empty ");
+    			}
+    		}
+    		
+    		else if (v == emailButton && trackMode == MODE_VERIFY) {
+    			Log.d(TAG, "clicked email button");
+    			emailCsvVerifyFile();
+    		}
+    		
     	}
     };
     
@@ -897,6 +968,45 @@ public class MainActivity extends Activity {
 		return result;
 	}
 */
+	
+	@SuppressLint("SimpleDateFormat")
+    public void emailCsvVerifyFile(){
+		if(verifyHistoryList.size() > 0) {
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy_MMdd_HHmmss");
+			String s = "verify point for "+myMac+",time diff sec,distance diff,true x,true y,last ALE date,last ALE x,last ALE y\n";
+			for(int i=0; i<verifyHistoryList.size(); i++) {
+				s = s + verifyHistoryList.get(i).toCsv();
+			}
+			CharSequence tViewCharSeq = s;
+			Log.d(TAG, "sending csv file \n"+s);
+			String logFileName = new String ("ALE_VerifyFile_" + simpleDateFormat.format(new Date()) + ".csv");
+			File logFile = new File(MainActivity.context.getExternalFilesDir(null), logFileName);
+			logFile.setReadable(true);
+			try {
+			BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(logFile));
+				bufferedWriter.append(tViewCharSeq);
+				bufferedWriter.flush();
+				bufferedWriter.close();	
+			} catch (IOException e) {
+				Log.e(TAG, "Exception saving csv log file "+e);
+				Toast.makeText(MainActivity.context, "Could not save csv log file" + e, Toast.LENGTH_LONG).show();
+			}		
+			try {
+				Log.v(TAG, "Sending log file length "+logFile.length());
+		        Intent sendIntent = new Intent(Intent.ACTION_SEND);
+		      	sendIntent.setType("text/plain");
+		      	if(csvEmailAddress != "") sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{csvEmailAddress});
+		    	sendIntent.putExtra(Intent.EXTRA_SUBJECT, "ALE Verify File Attached");
+		    	sendIntent.putExtra(Intent.EXTRA_TEXT, logFileName+" file size "+logFile.length());
+		    	sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+logFile.getAbsolutePath()));
+		    	startActivity(Intent.createChooser(sendIntent, "Email:"));
+			} catch (Exception e) { Log.e(TAG, "sending email "+e); }
+		}
+		else {
+			Log.w(TAG, "wanted to email csv verify file but the list was empty");
+		}
+	}
+	
     
     private void readSharedPreferences(){
     	Log.i(TAG, "reading shared preferences");
@@ -968,6 +1078,7 @@ public class MainActivity extends Activity {
 	    aleAllPositionHistoryMap.clear();
 		alePositionHistoryList = new ArrayList<PositionHistoryObject>();
 		surveyHistoryList = new ArrayList<PositionHistoryObject>();
+		verifyHistoryList = new ArrayList<VerifyObject>();
 		eventLogMap = new HashMap<String, ArrayList<String>>(500);
 		if(floorPlan != null) { floorPlan = null; }
 		floorList.clear();
@@ -987,7 +1098,7 @@ public class MainActivity extends Activity {
 		showAllMacs = true;
 		waitingToTouchTarget = false;
 		touchTargetHashMac = null;
-		trackMode = true;
+		trackMode = MODE_TRACK;
     }
     
     public void setViewsAndListeners(){
@@ -1010,7 +1121,9 @@ public class MainActivity extends Activity {
         trackHistoryButton = (Button) findViewById(R.id.trackHistoryButton);
         trackHistoryButton.setOnClickListener(trackHistoryButtonListener);
         surveyButton = (Button) findViewById(R.id.surveyButton);
-        surveyButton.setOnClickListener(surveyButtonListener);
+        surveyButton.setOnClickListener(surveyModeListener);
+        emailButton = (Button) findViewById(R.id.emailButton);
+        emailButton.setOnClickListener(surveyButtonListener);
         surveyConfirmButton = (Button) findViewById(R.id.surveyConfirmButton);
         surveyConfirmButton.setOnClickListener(surveyButtonListener);
 		floorPlanView = (FloorPlanView) findViewById(R.id.FloorPlanView);
@@ -1023,8 +1136,23 @@ public class MainActivity extends Activity {
 		pickTargetButton.setText(pickTargetButtonText);
     	if(showHistory) { trackHistoryButton.setText("showing history"); }
     	else { trackHistoryButton.setText("not showing history"); }
-    	if(trackMode) { surveyButton.setText("in track mode"); }
-    	else { surveyButton.setText("in survey mode"); }
+		if(trackMode == MODE_TRACK) { 
+			surveyButton.setText("in track mode"); 
+			emailButton.setVisibility(View.GONE);
+			surveyConfirmButton.setVisibility(View.GONE);
+		}
+		else if(trackMode == MODE_SURVEY) { 
+			surveyButton.setText("in survey mode"); 
+			emailButton.setVisibility(View.GONE);
+			surveyConfirmButton.setVisibility(View.VISIBLE);
+			surveyConfirmButton.setText("confirm survey pt");
+		}
+		else if(trackMode == MODE_VERIFY) { 
+			surveyButton.setText("in verify mode"); 
+			emailButton.setVisibility(View.VISIBLE);
+			surveyConfirmButton.setVisibility(View.VISIBLE);
+			surveyConfirmButton.setText("confirm pt");
+		}
     }
     
     public void initialiseConfigViews(){

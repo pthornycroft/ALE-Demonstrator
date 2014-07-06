@@ -3,8 +3,13 @@ package com.arubanetworks.aledemonstrator;
 import java.util.Date;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+
+import android.util.Log;
 
 public class PositionHistoryObject {
+	String TAG = "PositionHistoryObject";
+	
 	Date timestamp;  // use "new Date()"  from System.currentTimeMillis()
 	float touchX = 0;  // this is as indicated on touchscreen in 'site survey' mode
 	float touchY = 0;
@@ -24,7 +29,7 @@ public class PositionHistoryObject {
 	String deviceMfg = "XX";
 	String deviceModel = "XX";
 	float compassDegrees = 0;
-	JSONArray iBeaconJsonArray = null;
+	JSONArray iBeaconJsonArray;
 	
 	public PositionHistoryObject(Date ts, float touch_X, float touch_Y, float meas_X, float meas_Y, int level, boolean from, float err, 
 			String floor, String bldg, String campus, String eth, String hashed, String units, String deviceMfg, String deviceModel, 
@@ -45,7 +50,7 @@ public class PositionHistoryObject {
 		this.deviceMfg = deviceMfg;
 		this.deviceModel = deviceModel;
 		this.compassDegrees = compassDegrees;
-		this.iBeaconJsonArray = iBeaconJsonArray;
+		this.iBeaconJsonArray = ibeaconJsonArray;
 	}
 	
 	public PositionHistoryObject(Date ts, float touch_X, float touch_Y, float meas_X, float meas_Y){

@@ -48,7 +48,7 @@ public class BluetoothBeaconScanner {
 				};
 			}
 			
-			if(MainActivity.bluetoothEnabled == true && MainActivity.trackMode == false) {
+			if(MainActivity.bluetoothEnabled == true && MainActivity.trackMode == MainActivity.MODE_SURVEY) {
 				scanLeDevice(true);
 			}
 			bluetoothScanIntervalHandler.postDelayed(bluetoothScanRunnable, SCAN_INTERVAL);
