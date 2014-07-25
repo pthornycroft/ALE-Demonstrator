@@ -33,7 +33,7 @@ public class GetAleDiscoveryAsyncTask extends AsyncTask <String, Integer, ArrayL
 	public void onPreExecute(){
 		Log.i(TAG, "getAleDiscoveryAsyncTask starting");
 		MainActivity.aleDiscoveryAsyncTaskInProgress = true;
-		MainActivity.httpStatusString1 = "Discovering campus, building, floor data";
+		MainActivity.httpStatusString1 = "Discovering floors";
 		MainActivity.httpStatusString2 = "";
 	}
 	
@@ -46,8 +46,8 @@ public class GetAleDiscoveryAsyncTask extends AsyncTask <String, Integer, ArrayL
 		for (int i=0; i<result[0].size(); i++){ Log.i(TAG, "Campus List "+i +" "+result[0].get(i).toString()); }
 		for (int i=0; i<result[1].size(); i++){ Log.i(TAG, "Building List "+i +" "+result[1].get(i).toString()); }
 		for (int i=0; i<result[2].size(); i++){ Log.i(TAG, "Floor List "+i +" "+result[2].get(i).toString()); }
-		if(result[2] != null) { MainActivity.httpStatusString1 = "Discovered campus, building, floor data, "+result[2].size()+" floors"; }
-		else { MainActivity.httpStatusString1 = "Failed to discover campus, building, floor"; }
+		if(result[2] != null) { MainActivity.httpStatusString1 = "Discovered "+result[2].size()+" floors"; }
+		else { MainActivity.httpStatusString1 = "Failed to discover floors"; }
 	}
 	
 	
@@ -76,7 +76,8 @@ public class GetAleDiscoveryAsyncTask extends AsyncTask <String, Integer, ArrayL
 			MainActivity.httpStatusString2 = e.getMessage();
 		} catch (java.net.SocketTimeoutException e) {
 			Log.e(TAG, "socket timeout exception "+e); 
-			MainActivity.httpStatusString2 = e.getMessage();
+			if(e.toString().contains("failed to connect")) { MainActivity.httpStatusString2 = "Failed to connect to "+MainActivity.aleHost+":"+MainActivity.alePort+" after "+(TIMEOUT_VALUE/1000)+"sec "; }
+			else { MainActivity.httpStatusString2 = e.getMessage().toString(); }
 		}
 		catch (Exception e) { Log.e(TAG, "Exception getting location AleDiscovery "+e); }
 	return result;

@@ -13,12 +13,13 @@
 <!-- new version 12 on 17Jun14 with fingerprint map request interval reduced from 60 to 10sec when in survey mode -->
 <!-- new version 13 on 26Jun14 with colour response for fingerprint post -->
 <!-- new version 14 on 06Jul14 with verification function -->
+<!-- new version 15 on 25Jul14 with improved status messages and cleared initial account -->
 
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.arubanetworks.aledemonstrator"
-    android:versionCode="14"
-    android:versionName="14" >
+    android:versionCode="15"
+    android:versionName="15" >
 
     <uses-sdk
         android:minSdkVersion="11"

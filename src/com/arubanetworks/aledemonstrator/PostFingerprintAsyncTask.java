@@ -72,12 +72,15 @@ public class PostFingerprintAsyncTask extends AsyncTask < SurveyObject, String, 
 	public void onPostExecute(SurveyObject result){
 		Log.i(TAG, "PostFingerprintAsyncTask finished with "+result.success);
 		MainActivity.postFingerprintAsyncTaskInProgress = false;
-		if(result.action.equals("add")) { MainActivity.addSurveyPointToList(result.pho, result.success); }
-		else if(result.action.equals("delete")) { MainActivity.deleteSurveyPointFromList(result.pho, result.success); }
-		if(result.action.equals("add") && result.satisfactory > 0 ) { 
-			FingerprintMapPoint newPoint = new FingerprintMapPoint(result.pho.measuredX, result.pho.measuredY, result.satisfactory, null);
-			MainActivity.floorList.get(MainActivity.floorListIndex).fingerprintMapList.add(newPoint);
+		if(result.action.equals("add")) {
+			if(result.satisfactory > 0 ) { 
+				MainActivity.addSurveyPointToList(result.pho, true);
+				FingerprintMapPoint newPoint = new FingerprintMapPoint(result.pho.measuredX, result.pho.measuredY, result.satisfactory, null);
+				MainActivity.floorList.get(MainActivity.floorListIndex).fingerprintMapList.add(newPoint);
+			} 
+			else { MainActivity.addSurveyPointToList(result.pho, result.success); } 
 		}
+		else if(result.action.equals("delete")) { MainActivity.deleteSurveyPointFromList(result.pho, result.success); }
 		MainActivity.surveyConfirmButton.clearAnimation();
 	}	
 	
@@ -85,7 +88,7 @@ public class PostFingerprintAsyncTask extends AsyncTask < SurveyObject, String, 
 		boolean result = false;
 		try {
 			JSONObject jObject = new JSONObject(in);
-			result = jObject.getBoolean("result");
+			if(jObject.has("result")) { result = jObject.getBoolean("result"); }
 		} catch (Exception e) { Log.e(TAG, "could not parse fingerprint Post response for result "+e); }
 		return result;
 	}

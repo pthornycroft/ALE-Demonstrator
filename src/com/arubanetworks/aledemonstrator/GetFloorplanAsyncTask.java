@@ -29,7 +29,7 @@ public class GetFloorplanAsyncTask extends AsyncTask <String, Integer, Bitmap> {
 	public void onPreExecute(){
 		Log.i(TAG, "GetFloorplanAsyncTask starting");
 		MainActivity.getFloorplanAsyncTaskInProgress = true;
-		MainActivity.httpStatusString2 = "Starting floorplan image download";
+		MainActivity.httpStatusString2 = "Starting image download";
 		MainActivity.selectFloorButton.startAnimation(MainActivity.animAlpha);
 	}
 	
@@ -39,7 +39,7 @@ public class GetFloorplanAsyncTask extends AsyncTask <String, Integer, Bitmap> {
 		MainActivity.selectFloorButton.clearAnimation();
 		if(result != null){
 			MainActivity.floorPlan = result;
-			MainActivity.httpStatusString2 = "Successful floorplan image download";
+			MainActivity.httpStatusString2 = "Successful image download";
 		}
 		//else { MainActivity.httpStatusString2 = "Unsuccessful floorplan image download"; }
 	}

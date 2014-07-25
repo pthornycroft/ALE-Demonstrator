@@ -93,14 +93,14 @@ public class MainActivity extends Activity {
 	static long zmqLastSeq = 0;
 	static long zmqMissedSeq = 0;
 	
-	static String aleHost = "10.4.250.13";
+	static String aleHost = "";
 	static String alePort = "8080";
 	static String floorplanDownloadPort = "80";
 	static float site_xAle = 0;
 	static float site_yAle = 0;
 	static Bitmap floorPlan;
-	static String aleUsername = "root";
-	static String alePassword = "Aruba@2013";
+	static String aleUsername = "";
+	static String alePassword = "";
 	static String httpStatusString1 = "http Status";
 	static String httpStatusString2 = "";
     
@@ -246,7 +246,7 @@ public class MainActivity extends Activity {
     		} 
         	
     		if(zmqMessageCounter > 0) { 
-    			zmqStatusString = +zmqMessageCounter+" ZMQ messages, "+zmqMessagesForMyMac+" for my MAC "; 
+    			zmqStatusString = +zmqMessageCounter+" messages, "+zmqMessagesForMyMac+" for my MAC "; 
     		}
     		
     		if(counter%5 == 1 && scanningEnabled && wifiManager != null){
@@ -292,7 +292,7 @@ public class MainActivity extends Activity {
     			if(progress.contains("Closed")) {
     				progress = "socket closed";
     			}
-    			zmqStatusString = "ZMQ "+progress;
+    			zmqStatusString = progress;
     			//Log.v(TAG, "the zmq message was a progress message... "+progress);
     		} catch (Exception e) { Log.e(TAG, "Exception reading progress message content as string "+e); }
     	} else  if (msg.getData() != null){
@@ -334,7 +334,7 @@ public class MainActivity extends Activity {
     			    			floorListIndex = -1;
     			    			if(floorPlan != null) { floorPlan = null; }
     			    			floorPlanView.initialize();
-    			    			Log.v(TAG,"selected my floor but bad myFloorIndex "+myFloorIndex);
+    			    			Log.w(TAG,"selected my floor but bad myFloorIndex "+myFloorIndex);
     			    	        if(findMyLocationAsyncTaskInProgress == false) {
     			    	        	GetMyLocationAsyncTask getMyLocationAsyncTask = new GetMyLocationAsyncTask();
     			    	        	String[] params = {myMac, "true"};
@@ -1043,7 +1043,7 @@ public class MainActivity extends Activity {
     private void initialiseZmqAndOthers(){
 		try{
 			zmqSubscriber.interrupt();
-			zmqStatusString = "ZMQ restarting with "+aleHost;
+			zmqStatusString = "Restarting with "+aleHost;
 			Log.v(TAG, "interrupting ZMQ thread");
 		} catch (Exception e) { Log.e(TAG, "Exception in initialize interrupting ZMQ thread "+e); }
 		try { Thread.sleep(1000); } catch (Exception e) { Log.e(TAG, "Exception sleeping in initializeZmq "+e);	}
@@ -1211,7 +1211,7 @@ public class MainActivity extends Activity {
 			} catch (Exception e) { Log.e(TAG, "Exception in initialize interrupting ZMQ thread "+e); }
 			try { Thread.sleep(1000); } catch (Exception e) { Log.e(TAG, "Exception sleeping in initializeZmq "+e);	}
 			zmqSubscriber = null;
-			zmqStatusString = "ZMQ stopping with "+aleHost;
+			zmqStatusString = "Stopping with "+aleHost;
 		}
 		zmqMessageCounter = 0;
 		zmqMessagesForMyMac = 0;
