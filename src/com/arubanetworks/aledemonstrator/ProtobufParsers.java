@@ -3,7 +3,11 @@ package com.arubanetworks.aledemonstrator;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import com.google.protobuf.ByteString;
+
 import android.util.Log;
+import android.widget.Toast;
 
 public class ProtobufParsers {
 	static String TAG = "ProtobufParsers";
@@ -24,6 +28,7 @@ public class ProtobufParsers {
 			if(event.hasApplication()) { parseAleApplication(event.getApplication()); }
 			if(event.hasVisibilityRec()) { parseAleVisibilityRec(event.getVisibilityRec()); }
 			if(event.hasFloor()){ parseAleFloor(event.getFloor()); }
+			if(event.hasGeofenceNotify()){ parseAleGeofence(event.getGeofenceNotify()); }
 		} catch (Exception e) { Log.e(TAG, "Exception parsing input as event "+e); }	
 	}
 	
@@ -60,8 +65,8 @@ public class ProtobufParsers {
 			sta_location_y = location.getStaLocationY();
 			error = location.getErrorLevel();
 			floorId = LookupTables.byteStringToHexString(location.getFloorId());
-			buildingId = location.getBuildingId().toStringUtf8();
-			campusId = location.getCampusId().toStringUtf8();
+			buildingId = LookupTables.byteStringToHexString(location.getBuildingId());
+			campusId = LookupTables.byteStringToHexString(location.getCampusId());
 			sta_eth_mac = LookupTables.byteStringToStringForMac(location.getStaEthMac().getAddr());
 			hashed_sta_eth_mac = LookupTables.byteStringToHexString(location.getHashedStaEthMac());
 			if(hashed_sta_eth_mac.equals("") && sta_eth_mac != null) { hashed_sta_eth_mac = sta_eth_mac; }
@@ -264,7 +269,7 @@ public class ProtobufParsers {
 			String campus_id = "";
 			String campus_name = "";
 			
-			campus_id = campus.getCampusId().toStringUtf8();
+			campus_id = LookupTables.byteStringToHexString(campus.getCampusId());
 			campus_name = campus.getCampusName().toString();
 			
 			Log.v(TAG, "parseAleCampus campus_id _"+campus_id+"_ campus_name _"+campus_name+"_");
@@ -278,9 +283,9 @@ public class ProtobufParsers {
 			String building_name = "";
 			String campus_id = "";
 			
-			building_id = building.getBuildingId().toStringUtf8();
+			building_id = LookupTables.byteStringToHexString(building.getBuildingId());
 			building_name = building.getBuildingName().toString();
-			campus_id = building.getCampusId().toStringUtf8();
+			campus_id = LookupTables.byteStringToHexString(building.getCampusId());
 			
 			//Log.v(TAG, "parseAleBuilding building_id _"+building_id+"_ building_name _"+building_name+"_ campus_id _"+campus_id+"_");
 			
@@ -298,14 +303,14 @@ public class ProtobufParsers {
 			String buildingId = "XXXXXXXXXXXXXXXX";
 			String floor_img_path = "not found";
 			
-			floorId = floor.getFloorId().toStringUtf8();
+			floorId = LookupTables.byteStringToHexString(floor.getFloorId());
 			floorName = floor.getFloorName();
 			floorLatitude = floor.getFloorLatitude();
 			floorLongitude = floor.getFloorLongitude();
 			floorplanWidth = floor.getFloorImgWidth();
 			floorplanHeight = floor.getFloorImgLength();
 			floor_img_path = LookupTables.byteStringToHexString(floor.getFloorImgPathBytes());
-			buildingId = floor.getBuildingId().toStringUtf8();
+			buildingId = LookupTables.byteStringToHexString(floor.getBuildingId());
 			
 			//Log.v(TAG, "floorId "+floorId+" name "+floorName+" lat "+floorLatitude+" long "+
 			//		floorLongitude+" width "+floorplanWidth+" height "+floorplanHeight+
@@ -327,6 +332,34 @@ public class ProtobufParsers {
 			MainActivity.eventLogMap.get(hashed_sta_eth_mac).remove(0);
 			
 		}
+	}
+	
+	public static void parseAleGeofence(AleMsg.geofence_notify geofence){
+		try{
+			String sta_eth_mac = "";
+			String entered = "Entered";
+			String geofence_name = "";
+			String geofence_id = "";
+			String hashed_sta_eth_mac = "";
+			if(geofence.getGeofenceEvent() == AleMsg.geofence_notify.zone_event.ZONE_OUT) { entered = "Left"; }
+			geofence_name = geofence.getGeofenceName();
+			geofence_id = LookupTables.byteStringToHexString(geofence.getGeofenceId());
+			sta_eth_mac = LookupTables.byteStringToStringForMac(geofence.getStaMac().getAddr());
+			hashed_sta_eth_mac = LookupTables.byteStringToHexString(geofence.getHashedStaMac());
+			if(hashed_sta_eth_mac.equals("") && sta_eth_mac != null) { hashed_sta_eth_mac = sta_eth_mac; }
+			
+			Log.d(TAG, "1 parseAleGeofence sta_eth_mac_"+sta_eth_mac+"_ hashed_sta_eth_mac_"+hashed_sta_eth_mac+"_  _"+entered+" name_"+geofence_name+" ID_"+geofence_id+"_  my hashmac_"+MainActivity.myMac+" ID raw_"+geofence.getGeofenceId());
+			
+			addToEventLogMap(hashed_sta_eth_mac, "GEOFENCE_"+entered+" name_"+geofence_name+" ID_"+geofence_id+"_");
+
+			if(sta_eth_mac.equals(MainActivity.myMac) || hashed_sta_eth_mac.equals(MainActivity.myHashMac)) { ///
+				Log.d(TAG, "2 parseAleGeofence sta_eth_mac_"+sta_eth_mac+"_ hashed_sta_eth_mac_"+hashed_sta_eth_mac+"_  _"+entered+" name_"+geofence_name+" ID_"+
+						geofence_id+"_  mymac_"+MainActivity.myMac+" myHashmac_"+MainActivity.myHashMac+" ID raw_"+geofence.getGeofenceId()+"  raw_enter_"+geofence.getGeofenceEvent());
+ 				Toast toast = Toast.makeText(MainActivity.context, (entered+" geofence name "+geofence_name+"  ID "+geofence_id), Toast.LENGTH_LONG);
+				toast.show();
+			}
+			
+		} catch (Exception e) { Log.e(TAG, "Exception parsing Geofence protobuf event "+e); } 
 	}
 	
 	

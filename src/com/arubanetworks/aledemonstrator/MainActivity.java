@@ -23,6 +23,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.Editable;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
@@ -84,7 +87,7 @@ public class MainActivity extends Activity {
 //	ZMQSubscriber2 zmqSubscriber;
 	static Handler zmqHandler;
 	// the zmqfilter sets up the pub-sub contract with ale server.  change this to get different feeds
-	static String[] zmqFilter = {"location", "presence", "station", "destination", "application", "device_rec"};
+	static String[] zmqFilter = {"location", "presence", "station", "destination", "application", "device_rec",  "geofence"};
 	//static String[] zmqFilter = {"location"};
 	static String ZMQ_PROGRESS_MESSAGE = "zmqProgress";
 	static String zmqStatusString = "ZMQ Status";
@@ -159,6 +162,8 @@ public class MainActivity extends Activity {
 	static ArrayList<PositionHistoryObject> surveyHistoryList = new ArrayList<PositionHistoryObject>();
 	// this is a list of verify objects, holding verify survey results
 	static ArrayList<VerifyObject> verifyHistoryList = new ArrayList<VerifyObject>();
+	// this is a list of position history objects from http lookups, used for verification if zmqEnabled is false
+	static ArrayList<PositionHistoryObject> aleHttpPositionHistoryList = new ArrayList<PositionHistoryObject>();
 	
 	static Animation animAlpha;
 
@@ -224,6 +229,15 @@ public class MainActivity extends Activity {
 	        	//findMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, myMac);
 	        	getMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
 	        }
+	        
+	        // added to allow http updates for verification if zmq is disabled
+	        if(zmqEnabled == false && trackMode == MODE_VERIFY && counter%3 == 2 && findMyLocationAsyncTaskInProgress == false) {
+	        	GetMyLocationAsyncTask getMyLocationAsyncTask = new GetMyLocationAsyncTask();
+	        	String[] params = {myMac, "true"};
+	        	//findMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, myMac);
+	        	getMyLocationAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
+	        	Log.w(TAG, "http updates getmylocation ");
+	        }
     		
             floorPlanView.invalidate();
 	
@@ -232,7 +246,10 @@ public class MainActivity extends Activity {
     			zmqMessagesForMyMac = 0;
     			zmqLastSeq = 0;
     			zmqMissedSeq = 0;
-    			alePositionHistoryList = new ArrayList<PositionHistoryObject>();
+    			// added if statement so we keep history if zmq is disabled
+    			if(zmqEnabled == true) {
+    				alePositionHistoryList = new ArrayList<PositionHistoryObject>();
+    			}
     			eventLogMap = new HashMap<String, ArrayList<String>>(500);
 
     			if(zmqEnabled) {
@@ -572,8 +589,23 @@ public class MainActivity extends Activity {
     				toast.show();
     				Log.v(TAG, "verify point confirmed "+surveyPointX+","+surveyPointY+"  ale "+measuredX+","+measuredY+"  dist diff "+distDiff+"  time diff "+diff+"  verify hist "+verifyHistoryList.size()+"  position hist "+alePositionHistoryList.size());
     			}
+    			// added to allow http location to be used for verify if zmq is disabled
+    			else if (zmqEnabled == false && aleHttpPositionHistoryList.size() > 0) {
+    				Date trueTime = new Date();
+    				Date aleTime = aleHttpPositionHistoryList.get(0).timestamp;
+    				float measuredX = aleHttpPositionHistoryList.get(0).measuredX;
+    				float measuredY = aleHttpPositionHistoryList.get(0).measuredY;
+    				VerifyObject newVerifyObject = new VerifyObject(trueTime, surveyPointX, surveyPointY, aleTime, measuredX, measuredY);
+    				verifyHistoryList.add(newVerifyObject);
+    				float diff = (float)(trueTime.getTime() - aleTime.getTime())/(float)1000;
+    				double distDiff = Math.sqrt((surveyPointX - measuredX)*(surveyPointX - measuredX) + (surveyPointY - measuredY)*(surveyPointY - measuredY));
+     				Toast toast = Toast.makeText(context, ("add verify point success\n"+String.format("%.2f",surveyPointX)+"  "+String.format("%.2f",surveyPointY)+" error "+String.format("%.2f",distDiff)), Toast.LENGTH_LONG);
+    				toast.show();
+    			}
     			else {
-    				Log.w(TAG, "tried to confirm a verify point but alePositionHistoryList was empty ");
+    				Log.w(TAG, "tried to confirm a verify point but alePositionHistoryList was empty and aleHttpPositionHistoryList was empty ");
+     				Toast toast = Toast.makeText(context, "tried to confirm a verify point but ALE position lists are empty", Toast.LENGTH_LONG);
+     				toast.show();
     			}
     		}
     		
@@ -1004,6 +1036,7 @@ public class MainActivity extends Activity {
 		}
 		else {
 			Log.w(TAG, "wanted to email csv verify file but the list was empty");
+			Toast.makeText(MainActivity.context, "wanted to email verify file but it was empty", Toast.LENGTH_LONG).show();
 		}
 	}
 	
@@ -1077,6 +1110,7 @@ public class MainActivity extends Activity {
     public void resetAllData(){
 	    aleAllPositionHistoryMap.clear();
 		alePositionHistoryList = new ArrayList<PositionHistoryObject>();
+		aleHttpPositionHistoryList = new ArrayList<PositionHistoryObject>();
 		surveyHistoryList = new ArrayList<PositionHistoryObject>();
 		verifyHistoryList = new ArrayList<VerifyObject>();
 		eventLogMap = new HashMap<String, ArrayList<String>>(500);
@@ -1100,6 +1134,24 @@ public class MainActivity extends Activity {
 		touchTargetHashMac = null;
 		trackMode = MODE_TRACK;
     }
+    
+    
+    @Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.menu, menu);
+		return true;
+	}
+     
+    @Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {		
+		case R.id.menu_exit:
+			finish();
+			break;
+		}
+		return false;
+	}
     
     public void setViewsAndListeners(){
 		aleHostTextView = (TextView) findViewById(R.id.aleHostTextView);
@@ -1216,7 +1268,7 @@ public class MainActivity extends Activity {
 		zmqMessageCounter = 0;
 		zmqMessagesForMyMac = 0;
 		zmqLastSeq = 0;
-		zmqMissedSeq = 0;
+		zmqMissedSeq = 0; 
 		try{
 			handler.removeCallbacks(runnable);
 		} catch (Exception e) { Log.e(TAG, "onStop() exception stopping runnable "+e); }
@@ -1235,7 +1287,20 @@ public class MainActivity extends Activity {
 	@Override
 	public void onDestroy(){
 		super.onDestroy();
-		Log.i(TAG, "onDestroy");	    
+		Log.i(TAG, "onDestroy");
+/*		if(zmqEnabled) {
+			try{
+				zmqSubscriber.interrupt();
+				Log.v(TAG, "onStop interrupting ZMQ thread");
+			} catch (Exception e) { Log.e(TAG, "Exception in initialize interrupting ZMQ thread "+e); }
+			try { Thread.sleep(1000); } catch (Exception e) { Log.e(TAG, "Exception sleeping in initializeZmq "+e);	}
+			zmqSubscriber = null;
+			zmqStatusString = "Stopping with "+aleHost;
+		}
+		zmqMessageCounter = 0;
+		zmqMessagesForMyMac = 0;
+		zmqLastSeq = 0;
+		zmqMissedSeq = 0; */
 //	    aleAllPositionHistoryMap.clear();
 //		alePositionHistoryList = new ArrayList<PositionHistoryObject>();
 //		surveyHistoryList = new ArrayList<PositionHistoryObject>();

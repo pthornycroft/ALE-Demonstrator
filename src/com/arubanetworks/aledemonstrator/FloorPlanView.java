@@ -39,7 +39,6 @@ public class FloorPlanView extends View {
 	float site_yAle = 0;
 	boolean showHistory;
 	boolean showAllMacs;
-	boolean showLabels;
 	String targetHashMac;
 	boolean waitingToTouchTarget;
 	
@@ -79,17 +78,12 @@ public class FloorPlanView extends View {
 	        thisFloorPlan = MainActivity.floorPlan;
 	        site_xAle = MainActivity.site_xAle;
 	        site_yAle = MainActivity.site_yAle;
-//	        aleAllPositionHistoryMap = MainActivity.aleAllPositionHistoryMap;
-//	        alePositionHistoryList = MainActivity.alePositionHistoryList;
 	        showHistory = MainActivity.showHistory;
 	        showAllMacs = MainActivity.showAllMacs;
 	        targetHashMac = MainActivity.targetHashMac;
 	        waitingToTouchTarget = MainActivity.waitingToTouchTarget;
         	viewWidth = this.getWidth();
         	viewHeight = this.getHeight();
-        	//Log.i(TAG, "onDraw starting with thisFloor.floor_id "+thisFloor.floor_id+" index "+MainActivity.floorListIndex);
-        	// Log.i(TAG, "onDraw starting with origin "+originX+" "+originY+"  moved "+deltaOriginX+" "+deltaOriginY+" scaleFactor "+mScaleFactor+" canvasSize "
-			//	+canvas.getWidth()+" "+canvas.getHeight()+" viewSize "+viewWidth+" "+viewHeight);
 
         	// Scale the canvas for pinch-zoom to mScaleFactor
         	canvas.save();
@@ -117,14 +111,13 @@ public class FloorPlanView extends View {
 			myHairlinePaint.setStyle(Paint.Style.STROKE);
 			myHairlinePaint.setStrokeWidth(3);
 		
-			//Size the bitmap and build a rectangle to put it in, on the canvas
+			// Size the bitmap and build a rectangle to put it in, on the canvas
 			float frameScaleFloat = scaleBitmap(canvas.getWidth(), canvas.getHeight(), thisFloorPlan.getWidth(), thisFloorPlan.getHeight());
 			rectWidthInt = sizeRect(thisFloorPlan.getWidth(), frameScaleFloat);
 			rectHeightInt = sizeRect(thisFloorPlan.getHeight(), frameScaleFloat);
 			frameRect.set(0, 0, rectWidthInt, rectHeightInt);
 			
 			canvas.drawBitmap(thisFloorPlan, null, frameRect, null);
-			//scaleFactor = (float) (rectHeightInt/MainActivity.siteHeight);
 			scaleFactor = (float) (rectHeightInt/thisFloor.floor_img_length);
 			
 			// if we have a grid size, draw a grid superimposed and put a legend at upper left
@@ -149,13 +142,10 @@ public class FloorPlanView extends View {
 						myMacPaint.setAlpha(100);
 						float x = thisFloor.fingerprintMapList.get(i).locationX - (thisFloor.fingerprintMapList.get(i).locationX % thisFloor.grid_size);
 						float y = thisFloor.fingerprintMapList.get(i).locationY - (thisFloor.fingerprintMapList.get(i).locationY % thisFloor.grid_size);
-						//Log.v(TAG, "grid survey point "+thisFloor.grid_size+"  "+thisFloor.fingerprintMapList.get(i).locationX+" "+x+"  "+thisFloor.fingerprintMapList.get(i).locationY+"  "+y);
-						//myMacPaint.setARGB(100, 153, 255, 153);
 						canvas.drawRect(x *scaleFactor, y * scaleFactor, (x+thisFloor.grid_size) * scaleFactor, (y+thisFloor.grid_size) * scaleFactor, myMacPaint);
 					}
 				}
 				myMacPaint.setColor(Color.BLUE);
-				//myMacPaint.setAlpha(255);
 			}
 			
 			// paint the MAC address just off the floorplan
@@ -169,8 +159,6 @@ public class FloorPlanView extends View {
 				canvas.drawLine(-originX, (viewHeight/mScaleFactor)/2-originY, (viewWidth/mScaleFactor)-originX, (viewHeight/mScaleFactor/2)-originY, myHairlinePaint);
 				MainActivity.surveyPointX = (-originX+(viewWidth/mScaleFactor/2))/scaleFactor;
 				MainActivity.surveyPointY = (-originY+(viewHeight/mScaleFactor/2))/scaleFactor;
-				//canvas.drawRect((viewWidth/mScaleFactor)/2-originX-1, -originY, (viewWidth/mScaleFactor)/2-originX+1, (viewHeight/mScaleFactor)-originY, myAlePaint);
-				//canvas.drawLine(-originX, (viewHeight/mScaleFactor)/2-originY-1, (viewWidth/mScaleFactor)-originX, (viewHeight/mScaleFactor/2)-originY+1, myAlePaint);
 			}
 			
 			// Draw position and historical track of ALL ALE Positions if item enabled
@@ -188,12 +176,8 @@ public class FloorPlanView extends View {
 						}
 						// if it's the latest entry, draw a square for the current position
 						if(i == (entry.getValue().size()-2) && entry.getValue().get(i+1).floorId.equals(thisFloor.floor_id)){
-							canvas.drawRect(entry.getValue().get(i+1).measuredX*scaleFactor -8, entry.getValue().get(i+1).measuredY*scaleFactor -8, 
-									entry.getValue().get(i+1).measuredX*scaleFactor+8, entry.getValue().get(i+1).measuredY*scaleFactor+8, myAlePaint);
-							// Draw label if enabled
-							//if(showLabels){
-							//	canvas.drawText(entry.getValue().get(i).ethAddr, entry.getValue().get(i+1).measuredX*scaleFactor -20, entry.getValue().get(i+1).measuredY*scaleFactor -10, myAlePaint);
-							//}
+							canvas.drawRect(entry.getValue().get(i+1).measuredX*scaleFactor - 8/mScaleFactor, entry.getValue().get(i+1).measuredY*scaleFactor - 8/mScaleFactor, 
+									entry.getValue().get(i+1).measuredX*scaleFactor + 8/mScaleFactor, entry.getValue().get(i+1).measuredY*scaleFactor + 8/mScaleFactor, myAlePaint);
 						}
 					}
 				}
@@ -220,8 +204,8 @@ public class FloorPlanView extends View {
 						
 						// if it's the latest entry, draw a square for the current position
 						if(i == historyList.size()-1 && historyList.get(i).floorId.equals(thisFloor.floor_id)){
-							canvas.drawRect(historyList.get(i).measuredX*scaleFactor -8, historyList.get(i).measuredY*scaleFactor -8, 
-									historyList.get(i).measuredX*scaleFactor+8, historyList.get(i).measuredY*scaleFactor+8, myAlePaint);
+							canvas.drawRect(historyList.get(i).measuredX*scaleFactor - 8/mScaleFactor, historyList.get(i).measuredY*scaleFactor - 8/mScaleFactor, 
+									historyList.get(i).measuredX*scaleFactor + 8/mScaleFactor, historyList.get(i).measuredY*scaleFactor + 8/mScaleFactor, myAlePaint);
 						}
 						
 					}
@@ -230,12 +214,8 @@ public class FloorPlanView extends View {
 			
 			// Draw my ALE position with a rect icon, provided we are on this floor
 			if(MainActivity.trackMode != MainActivity.MODE_SURVEY && MainActivity.myFloorId != null && MainActivity.myFloorId.equals(thisFloor.floor_id)){
-				canvas.drawRect(site_xAle*scaleFactor -8, site_yAle*scaleFactor -8, 
-							(site_xAle*scaleFactor)+8, (site_yAle*scaleFactor)+8, myMacPaint);				
-				// Draw label if enabled
-				//if(showLabels){
-				//	canvas.drawText(MainActivity.myMac, site_xAle*scaleFactor -20, site_yAle*scaleFactor -10, myMacPaint);
-				//}
+				canvas.drawRect(site_xAle*scaleFactor - 8/mScaleFactor, site_yAle*scaleFactor - 8/mScaleFactor, 
+							(site_xAle*scaleFactor)+ 8/mScaleFactor, (site_yAle*scaleFactor)+ 8/mScaleFactor, myMacPaint);				
 					
 				// Draw my historical track of ALE Position if menu item enabled
 				if(MainActivity.alePositionHistoryList.size() > 1 && showHistory  ){
@@ -252,15 +232,16 @@ public class FloorPlanView extends View {
 				}
 			}
 			
-			// If in survey mode, draw breadcrumbs for survey points in this run
+			// If in survey mode, draw breadcrumbs for survey points in this run was +-8, trying +-1 because it was obscuring grid square
 			if(MainActivity.trackMode == MainActivity.MODE_SURVEY && MainActivity.floorList != null && MainActivity.floorListIndex != -1 && MainActivity.surveyHistoryList.size() > 0){
 				for(int i=0; i<MainActivity.surveyHistoryList.size(); i++){
 					if(MainActivity.surveyHistoryList.get(i).floorId.equals(MainActivity.floorList.get(MainActivity.floorListIndex).floor_id)){
-						canvas.drawRect(MainActivity.surveyHistoryList.get(i).touchX*scaleFactor -8,  MainActivity.surveyHistoryList.get(i).touchY*scaleFactor -8,
-								MainActivity.surveyHistoryList.get(i).touchX*scaleFactor +8, MainActivity.surveyHistoryList.get(i).touchY*scaleFactor +8, myMacPaint);
+						canvas.drawRect(MainActivity.surveyHistoryList.get(i).touchX*scaleFactor - 8/mScaleFactor,  MainActivity.surveyHistoryList.get(i).touchY*scaleFactor - 8/mScaleFactor,
+								MainActivity.surveyHistoryList.get(i).touchX*scaleFactor + 8/mScaleFactor, MainActivity.surveyHistoryList.get(i).touchY*scaleFactor + 8/mScaleFactor, myMacPaint);
 					}
 				}
 			}
+			
 			
 		} else { 
 			// if the bitmap has been reset to null, we just paint the canvas black because the floorplan is invalid

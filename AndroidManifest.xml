@@ -14,12 +14,15 @@
 <!-- new version 13 on 26Jun14 with colour response for fingerprint post -->
 <!-- new version 14 on 06Jul14 with verification function -->
 <!-- new version 15 on 25Jul14 with improved status messages and cleared initial account -->
+<!-- new version 16 on 31Jul14 with toast for geofence crossing -->
+<!-- new version 17 on 06Aug14 with fixed-size squares for location & breadcrumbs -->
+<!-- new version 18 on 18Nov14 with verify function working with http locations when zmq is disabled -->
 
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.arubanetworks.aledemonstrator"
-    android:versionCode="15"
-    android:versionName="15" >
+    android:versionCode="18"
+    android:versionName="18" >
 
     <uses-sdk
         android:minSdkVersion="11"

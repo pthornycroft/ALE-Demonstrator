@@ -42,6 +42,8 @@ public class JsonParsers {
 					PositionHistoryObject newObject = new PositionHistoryObject(new Date(), 0, 0, sta_location_x, sta_location_y, -99, false, error, 
 							floorId, buildingId, campusId, sta_eth_mac, hashed_sta_eth_mac, "ft", "XX", "XX", 0, null);
 					MainActivity.alePositionHistoryList.add(0, newObject);
+					// added to make the verify feature work with zmq disabled
+					if(MainActivity.zmqEnabled == false && MainActivity.trackMode == MainActivity.MODE_VERIFY) { MainActivity.aleHttpPositionHistoryList.add(0, newObject); }
 				} 
 				
 				// if it's the mac of a target, not us, add a position history object to a list on the aleAllPositionHistoryMap 
