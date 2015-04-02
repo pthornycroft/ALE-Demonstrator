@@ -4,15 +4,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.net.ssl.HttpsURLConnection;
+
 import android.os.AsyncTask;
-import android.util.Base64;
 import android.util.Log;
 
 public class GetMyLocationAsyncTask extends AsyncTask < String, String, String> {
@@ -45,21 +44,37 @@ public class GetMyLocationAsyncTask extends AsyncTask < String, String, String> 
 	private InputStream runLookup(String args){
 		InputStream result = null;
 		try{
-			URL url = new URL("http://"+MainActivity.aleHost+":"+MainActivity.alePort+args);
+			URL url = new URL("https://"+MainActivity.aleHost+":"+MainActivity.alePort+args);
 			Log.v(TAG, "URL get protocol "+url.getProtocol()+" host "+url.getHost()+" port "+url.getPort()+" file "+url.getFile());
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+			HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+			connection.setHostnameVerifier(new CustomVerifier());
 			connection.setConnectTimeout(TIMEOUT_VALUE);
 			connection.setReadTimeout(TIMEOUT_VALUE);
-			/*Map<String, List<String>> map = connection.getHeaderFields();
-			for(Entry<String, List<String>> entry : map.entrySet()) { 
+			connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 4.3; Nexus 7 Build/JWR66D) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.111 Safari/537.36");
+			connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			
+			// prints the outgoing headers for troubleshooting
+			/*Map<String, List<String>> outMap = connection.getRequestProperties();
+			for(Entry<String, List<String>> entry : outMap.entrySet()) { 
 				for(int i=0; i<entry.getValue().size(); i++){
-					Log.v(TAG, "header "+entry.getKey()+"  "+entry.getValue().get(i));
+					Log.v(TAG, "location transmitted header "+entry.getKey()+"  "+entry.getValue().get(i));
 				}
-			} */ 
+			} */
+						
+			connection.connect();
+			
+			//CustomVerifier.checkCookies(connection.getHeaderFields(), TAG);
+			// prints the incoming headers for troubleshooting
+			/*Map<String, List<String>> inMap = connection.getHeaderFields();
+			for(Entry<String, List<String>> entry : inMap.entrySet()) { 
+				for(int i=0; i<entry.getValue().size(); i++){
+					Log.v(TAG, "location received header "+entry.getKey()+"  "+entry.getValue().get(i));
+				}
+			} */
 	
 			result = connection.getInputStream();
-			Log.v(TAG, "http result code was "+connection.getResponseCode()+"  response message "+connection.getResponseMessage());	
-		} catch (Exception e) { Log.e(TAG, "Exception getting location API query "+e); }
+			Log.v(TAG, "http get my location result code was "+connection.getResponseCode()+"  response message "+connection.getResponseMessage());	
+		} catch (Exception e) { Log.e(TAG, "Exception get mylocation API query "+e); }
 	return result;
 	}
 	

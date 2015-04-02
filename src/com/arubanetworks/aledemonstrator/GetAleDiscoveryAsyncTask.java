@@ -4,10 +4,18 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.net.ssl.HttpsURLConnection;
+
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 
 public class GetAleDiscoveryAsyncTask extends AsyncTask <String, Integer, ArrayList[]> {
@@ -55,19 +63,33 @@ public class GetAleDiscoveryAsyncTask extends AsyncTask <String, Integer, ArrayL
 	private InputStream runLookup(String args){
 		InputStream result = null;
 		try{
-			URL url = new URL("http://"+MainActivity.aleHost+":"+MainActivity.alePort+args);
+			URL url = new URL("https://"+MainActivity.aleHost+":"+MainActivity.alePort+args);
 			Log.v(TAG, "URL get protocol "+url.getProtocol()+" host "+url.getHost()+" port "+url.getPort()+" file "+url.getFile());
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+			HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+			connection.setHostnameVerifier(new CustomVerifier());
 			connection.setConnectTimeout(TIMEOUT_VALUE);
 			connection.setReadTimeout(TIMEOUT_VALUE);
+			connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 4.3; Nexus 7 Build/JWR66D) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.111 Safari/537.36");
+			connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 			
-			/*Map<String, List<String>> map = connection.getHeaderFields();
-			for(Entry<String, List<String>> entry : map.entrySet()) { 
+			// prints the outgoing headers for troubleshooting
+			/*Map<String, List<String>> mapOut = connection.getRequestProperties();
+			for(Entry<String, List<String>> entry : mapOut.entrySet()) { 
 				for(int i=0; i<entry.getValue().size(); i++){
-					Log.v(TAG, "header "+entry.getKey()+"  "+entry.getValue().get(i));
+					Log.v(TAG, "outgoing http discovery header "+entry.getKey()+"  "+entry.getValue().get(i));
 				}
 			} */
-	
+						
+			connection.connect();
+			
+			// prints the incoming headers for troubleshooting
+			/*Map<String, List<String>> mapIn = connection.getHeaderFields();
+			for(Entry<String, List<String>> entry : mapIn.entrySet()) { 
+				for(int i=0; i<entry.getValue().size(); i++){
+					Log.v(TAG, "incoming http discovery header "+entry.getKey()+"  "+entry.getValue().get(i));
+				}
+			}	*/
+			
 			result = connection.getInputStream();
 			if(connection.getResponseCode() != 200) { MainActivity.httpStatusString2 = connection.getResponseMessage(); }
 			Log.v(TAG, "AleDiscovery http result code was "+connection.getResponseCode()+"  response message "+connection.getResponseMessage());	
@@ -92,7 +114,7 @@ public class GetAleDiscoveryAsyncTask extends AsyncTask <String, Integer, ArrayL
 			br = new BufferedReader(new InputStreamReader(in));
 		    String line = "";
 		    while ((line = br.readLine()) != null) {
-			  //Log.v(TAG, "NEW LINE "+line);
+			  //Log.i(TAG, "NEW LINE "+line);
 		      sb.append(line);
 		    }
 		} 

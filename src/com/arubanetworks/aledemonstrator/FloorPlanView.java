@@ -301,7 +301,7 @@ public class FloorPlanView extends View {
 					break;
 				}
 				case MotionEvent.ACTION_UP:{
-					long timeDiff = System.currentTimeMillis() - action_downStartTime;
+					//long timeDiff = System.currentTimeMillis() - action_downStartTime;
 				}
 			}
 			invalidate();

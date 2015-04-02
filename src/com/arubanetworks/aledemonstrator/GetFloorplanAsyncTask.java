@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.net.ssl.HttpsURLConnection;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -21,7 +23,7 @@ public class GetFloorplanAsyncTask extends AsyncTask <String, Integer, Bitmap> {
 	
 	protected Bitmap doInBackground(String... params) {
 		
-		Bitmap result = downloadFloorplanJpg("http://"+MainActivity.aleHost+":"+MainActivity.floorplanDownloadPort+params[0]);
+		Bitmap result = downloadFloorplanJpg("https://"+MainActivity.aleHost+":"+MainActivity.floorplanDownloadPort+params[0]);
 		
 		return result;
 	}
@@ -66,8 +68,14 @@ public class GetFloorplanAsyncTask extends AsyncTask <String, Integer, Bitmap> {
 		Bitmap bmImage = null;
 			
 		try{
-			HttpURLConnection connection = (HttpURLConnection) imageURL.openConnection();
-			connection.setRequestProperty("Authorization", "Basic "+Base64.encodeToString((MainActivity.aleUsername+":"+MainActivity.alePassword).getBytes(), Base64.NO_WRAP));
+			HttpsURLConnection connection = (HttpsURLConnection) imageURL.openConnection();
+//			connection.setRequestProperty("Authorization", "Basic "+Base64.encodeToString((MainActivity.aleUsername+":"+MainActivity.alePassword).getBytes(), Base64.NO_WRAP));
+			connection.setHostnameVerifier(new CustomVerifier());
+			connection.setConnectTimeout(TIMEOUT_VALUE);
+			connection.setReadTimeout(TIMEOUT_VALUE);
+			connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 4.3; Nexus 7 Build/JWR66D) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.111 Safari/537.36");
+			connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			
 			if(connection.getResponseCode() != 200) { 
 				Log.e(TAG, "Exception opening connection "+connection.getResponseCode()+"  "+connection.getResponseMessage()); 
 				MainActivity.httpStatusString2 = connection.getResponseCode()+"  "+connection.getResponseMessage();
@@ -90,8 +98,8 @@ public class GetFloorplanAsyncTask extends AsyncTask <String, Integer, Bitmap> {
 			}	*/			
 			
 			InputStream is = connection.getInputStream();
-			connection.setConnectTimeout(TIMEOUT_VALUE);
-			connection.setReadTimeout(TIMEOUT_VALUE);
+			Log.v(TAG, "http image result code (1) was "+connection.getResponseCode()+"  response message "+connection.getResponseMessage());	
+
 			BufferedInputStream insImageURL = new BufferedInputStream(is, 8196);
 			
 			// test the size of the image to see if we need to compress it
@@ -106,9 +114,16 @@ public class GetFloorplanAsyncTask extends AsyncTask <String, Integer, Bitmap> {
 			insImageURL.close();
 			
 			// now we have to start a new connection to get a new input stream, and use the inSampleSize compression factor (factor 4 means 25%)
-			connection = (HttpURLConnection) imageURL.openConnection();
-			connection.setRequestProperty("Authorization", "Basic "+Base64.encodeToString((MainActivity.aleUsername+":"+MainActivity.alePassword).getBytes(), Base64.NO_WRAP));
+			connection = (HttpsURLConnection) imageURL.openConnection();
+			//connection.setRequestProperty("Authorization", "Basic "+Base64.encodeToString((MainActivity.aleUsername+":"+MainActivity.alePassword).getBytes(), Base64.NO_WRAP));
+			connection.setHostnameVerifier(new CustomVerifier());
+			connection.setConnectTimeout(TIMEOUT_VALUE);
+			connection.setReadTimeout(TIMEOUT_VALUE);
+			connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 4.3; Nexus 7 Build/JWR66D) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.111 Safari/537.36");
+			connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			
 			is = connection.getInputStream();
+			Log.v(TAG, "http image result code (2) was "+connection.getResponseCode()+"  response message "+connection.getResponseMessage());
 			insImageURL = new BufferedInputStream(is, 8196);
 			bmImage = BitmapFactory.decodeStream(insImageURL, null, bmOptions);  // this is where it crashed out of memory sometimes with detailed floorplan
 			insImageURL.close();

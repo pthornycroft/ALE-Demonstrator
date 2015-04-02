@@ -79,6 +79,11 @@ public class ProtobufParsers {
 				MainActivity.alePositionHistoryList.add(0, newObject);
 				MainActivity.zmqMessagesForMyMac++;
 			} 
+			
+			// if the mac or hashmac is the target we are tracking, update the "latest floor id" in case it has switched floors
+			if(hashed_sta_eth_mac.equalsIgnoreCase(MainActivity.targetHashMac) || sta_eth_mac.equalsIgnoreCase(MainActivity.targetHashMac)) {
+				if( !floorId.equals("not found")) { MainActivity.latestFloorId = floorId; }
+			}
 
 			// add the position history object to the device's array in the position hash map
 			PositionHistoryObject newObject = new PositionHistoryObject(new Date(), 0, 0, sta_location_x, sta_location_y, -99, false, error, 

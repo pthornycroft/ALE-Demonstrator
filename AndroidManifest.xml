@@ -17,12 +17,14 @@
 <!-- new version 16 on 31Jul14 with toast for geofence crossing -->
 <!-- new version 17 on 06Aug14 with fixed-size squares for location & breadcrumbs -->
 <!-- new version 18 on 18Nov14 with verify function working with http locations when zmq is disabled -->
+<!-- new version 19 on 29Mar15 with cookie login added -->
+<!-- new version 20 on 02Apr15 with revised cert trust logic, move-floor function -->
 
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.arubanetworks.aledemonstrator"
-    android:versionCode="18"
-    android:versionName="18" >
+    android:versionCode="20"
+    android:versionName="20" >
 
     <uses-sdk
         android:minSdkVersion="11"

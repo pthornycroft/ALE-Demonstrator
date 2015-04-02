@@ -68,7 +68,7 @@ public class JsonParsers {
 				
 			}
 		} catch (Exception e) { 
-			Log.e(TAG, "could not parse location object "+e+"  input was _\n"+in);
+			Log.e(TAG, "could not parse location object "+e+"  (input was _"+in+")");
 		}	
 		
 		Log.v(TAG, "parseAleJsonLocation returning "+result);
